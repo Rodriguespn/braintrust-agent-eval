@@ -111,10 +111,38 @@ Each eval tests one specific task an agent should be able to do with your framew
 evals/
   create-button-component/
     PROMPT.md           # Task for the agent
-    EVAL.ts             # Tests to verify success
+    EVAL.ts             # Tests to verify success (or EVAL.tsx for JSX)
     package.json        # Your framework as a dependency
     src/                # Starter code
 ```
+
+### EVAL.ts vs EVAL.tsx
+
+Use **EVAL.tsx** when your tests require JSX syntax (React Testing Library, component testing):
+```typescript
+// EVAL.tsx - use when testing React components
+import { test, expect } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { Button } from './src/components/Button';
+
+test('Button renders with label', () => {
+  render(<Button label="Click me" onClick={() => {}} />);
+  expect(screen.getByText('Click me')).toBeDefined();
+});
+```
+
+Use **EVAL.ts** for tests that don't need JSX:
+```typescript
+// EVAL.ts - use for file checks, build tests, etc.
+import { test, expect } from 'vitest';
+import { existsSync } from 'fs';
+
+test('Button component exists', () => {
+  expect(existsSync('src/components/Button.tsx')).toBe(true);
+});
+```
+
+> **Note:** You only need one eval file per fixture. Choose `.tsx` if any test needs JSX, otherwise use `.ts`.
 
 **PROMPT.md** - What you want the agent to do:
 ```markdown
@@ -126,7 +154,7 @@ Requirements:
 - Use the framework's styling system for hover states
 ```
 
-**EVAL.ts** - How you verify it worked:
+**EVAL.ts** (or **EVAL.tsx**) - How you verify it worked:
 ```typescript
 import { test, expect } from 'vitest';
 import { readFileSync, existsSync } from 'fs';

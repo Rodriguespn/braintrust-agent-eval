@@ -60,7 +60,7 @@ describe('fixture discovery and validation', () => {
       });
 
       const missing = validateFixtureFiles(path);
-      expect(missing).toContain('EVAL.ts');
+      expect(missing).toContain('EVAL.ts or EVAL.tsx');
       expect(missing).toContain('package.json');
       expect(missing).not.toContain('PROMPT.md');
     });

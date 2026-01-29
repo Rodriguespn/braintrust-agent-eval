@@ -93,6 +93,7 @@ export interface ResolvedExperimentConfig {
 
 /**
  * Required files for a valid eval fixture.
+ * Note: Either EVAL.ts or EVAL.tsx is required (not both).
  */
 export const REQUIRED_EVAL_FILES = ['PROMPT.md', 'EVAL.ts', 'package.json'] as const;
 
@@ -101,7 +102,7 @@ export const REQUIRED_EVAL_FILES = ['PROMPT.md', 'EVAL.ts', 'package.json'] as c
  * This is for local fixture introspection, NOT for sandbox uploads.
  * For sandbox file filtering, see TEST_FILE_PATTERNS in sandbox.ts.
  */
-export const EXCLUDED_FILES = ['PROMPT.md', 'EVAL.ts', 'node_modules', '.git'] as const;
+export const EXCLUDED_FILES = ['PROMPT.md', 'EVAL.ts', 'EVAL.tsx', 'node_modules', '.git'] as const;
 
 /**
  * Represents a discovered eval fixture.

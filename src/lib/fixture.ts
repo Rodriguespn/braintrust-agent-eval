@@ -54,14 +54,24 @@ export function discoverFixtures(evalsDir: string): string[] {
 /**
  * Validates that a fixture has all required files.
  * Returns an array of missing file names, or empty array if valid.
+ * Note: Accepts either EVAL.ts or EVAL.tsx for the eval file.
  */
 export function validateFixtureFiles(fixturePath: string): string[] {
   const missing: string[] = [];
 
   for (const file of REQUIRED_EVAL_FILES) {
-    const filePath = join(fixturePath, file);
-    if (!existsSync(filePath)) {
-      missing.push(file);
+    // Special case: Accept either EVAL.ts or EVAL.tsx
+    if (file === 'EVAL.ts') {
+      const hasEvalTs = existsSync(join(fixturePath, 'EVAL.ts'));
+      const hasEvalTsx = existsSync(join(fixturePath, 'EVAL.tsx'));
+      if (!hasEvalTs && !hasEvalTsx) {
+        missing.push('EVAL.ts or EVAL.tsx');
+      }
+    } else {
+      const filePath = join(fixturePath, file);
+      if (!existsSync(filePath)) {
+        missing.push(file);
+      }
     }
   }
 

@@ -63,8 +63,8 @@ describe('sandbox utilities', () => {
     it('separates test files from workspace files', () => {
       const files: SandboxFile[] = [
         { path: 'src/App.tsx', content: 'app code' },
-        { path: 'src/App.test.tsx', content: 'test code' },
-        { path: 'EVAL.ts', content: 'eval tests' },
+        { path: 'EVAL.tsx', content: 'eval tests' },
+        { path: 'PROMPT.md', content: 'task description' },
         { path: 'package.json', content: '{}' },
       ];
 
@@ -75,8 +75,8 @@ describe('sandbox utilities', () => {
         'src/App.tsx',
       ]);
       expect(testFiles.map((f) => f.path).sort()).toEqual([
-        'EVAL.ts',
-        'src/App.test.tsx',
+        'EVAL.tsx',
+        'PROMPT.md',
       ]);
     });
   });
@@ -87,9 +87,10 @@ describe('sandbox utilities', () => {
       expect(IGNORED_PATTERNS).toContain('node_modules');
     });
 
-    it('TEST_FILE_PATTERNS includes common test patterns', () => {
-      expect(TEST_FILE_PATTERNS).toContain('*.test.tsx');
+    it('TEST_FILE_PATTERNS includes eval file patterns', () => {
       expect(TEST_FILE_PATTERNS).toContain('EVAL.ts');
+      expect(TEST_FILE_PATTERNS).toContain('EVAL.tsx');
+      expect(TEST_FILE_PATTERNS).toContain('PROMPT.md');
     });
   });
 });

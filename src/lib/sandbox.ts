@@ -34,10 +34,9 @@ export const IGNORED_PATTERNS = [
  * Test/eval file patterns to withhold from agent during task execution.
  * These files are uploaded AFTER the agent completes for validation.
  * - PROMPT.md: Contains the task - agent receives this via CLI argument, not as a file
- * - EVAL.ts: Validation tests - must be hidden so agent can't "cheat"
- * - *.test.ts/tsx: Additional test files that shouldn't influence agent
+ * - EVAL.ts/tsx: Validation tests - must be hidden so agent can't "cheat"
  */
-export const TEST_FILE_PATTERNS = ['*.test.tsx', '*.test.ts', 'EVAL.ts', 'PROMPT.md'];
+export const TEST_FILE_PATTERNS = ['EVAL.ts', 'EVAL.tsx', 'PROMPT.md'];
 
 /**
  * Options for creating a sandbox.
