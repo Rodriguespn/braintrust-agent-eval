@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { execSync } from 'child_process';
-import { mkdirSync, writeFileSync, rmSync, existsSync } from 'fs';
+import { mkdirSync, writeFileSync, rmSync, existsSync, readFileSync } from 'fs';
 import { join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -51,7 +51,9 @@ describe('CLI', () => {
 
     it('shows version with --version flag', () => {
       const result = runCli(['--version']);
-      expect(result.stdout).toContain('1.1.1');
+      // Read version from package.json dynamically
+      const pkg = JSON.parse(readFileSync(join(PROJECT_ROOT, 'package.json'), 'utf-8'));
+      expect(result.stdout.trim()).toBe(pkg.version);
     });
   });
 

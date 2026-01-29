@@ -15,7 +15,8 @@ import { loadFixture, loadAllFixtures } from './lib/fixture.js';
 import { runSingleEval } from './lib/runner.js';
 import { loadConfig } from './lib/config.js';
 
-// Load .env file
+// Load .env file (try .env.local first, then .env)
+dotenvConfig({ path: '.env.local' });
 dotenvConfig();
 
 const TEST_DIR = '/tmp/eval-framework-integration-test';

@@ -75,7 +75,6 @@ describe('runExperiment', () => {
       // Verify concurrent execution: all starts should happen before all ends
       // (in sequential execution, start[i+1] would be after end[i])
       const maxStart = Math.max(...startTimes);
-      const minEnd = Math.min(...endTimes);
 
       // If concurrent, some tasks should still be starting while others finish
       // The max start time should be close to the min start time (all started together)

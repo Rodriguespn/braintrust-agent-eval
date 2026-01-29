@@ -1,4 +1,4 @@
-# agent-eval
+# @vercel/agent-eval
 
 Test AI coding agents on your framework. Measure what actually works.
 
@@ -16,7 +16,7 @@ You're building a frontend framework and want AI agents to work well with it. Bu
 
 ```bash
 # Create a new eval project
-npx agent-eval init my-framework-evals
+npx @vercel/agent-eval init my-framework-evals
 cd my-framework-evals
 
 # Install dependencies
@@ -27,10 +27,10 @@ cp .env.example .env
 # Edit .env with your AI_GATEWAY_API_KEY and VERCEL_TOKEN
 
 # Preview what will run (no API calls, no cost)
-npx agent-eval cc --dry
+npx @vercel/agent-eval cc --dry
 
 # Run the evals
-npx agent-eval cc
+npx @vercel/agent-eval cc
 ```
 
 ## A/B Testing AI Techniques
@@ -87,12 +87,12 @@ export default config;
 
 ```bash
 # Preview first
-npx agent-eval control --dry
-npx agent-eval with-mcp --dry
+npx @vercel/agent-eval control --dry
+npx @vercel/agent-eval with-mcp --dry
 
 # Run experiments
-npx agent-eval control
-npx agent-eval with-mcp
+npx @vercel/agent-eval control
+npx @vercel/agent-eval with-mcp
 ```
 
 **Compare results:**
@@ -231,19 +231,19 @@ export default config;
 
 Create a new eval project:
 ```bash
-npx agent-eval init my-evals
+npx @vercel/agent-eval init my-evals
 ```
 
 ### `<experiment>`
 
 Run an experiment:
 ```bash
-npx agent-eval cc
+npx @vercel/agent-eval cc
 ```
 
 **Dry run** - preview without executing (no API calls, no cost):
 ```bash
-npx agent-eval cc --dry
+npx @vercel/agent-eval cc --dry
 
 # Output:
 # Found 5 valid fixture(s), will run 5:
@@ -343,14 +343,17 @@ The framework loads `.env` automatically via [dotenv](https://github.com/motdotl
 
 ### Vercel Employees
 
-If this project is linked to a Vercel project that already has the required environment variables configured, you can pull them directly:
+**To get the environment variables, link to `vercel-labs/agent-eval` on Vercel:**
 
 ```bash
-vc link
+# Link to the vercel-labs/agent-eval project
+vc link vercel-labs/agent-eval
+
+# Pull environment variables
 vc env pull
 ```
 
-This writes a `.env.local` file with all the project's environment variables — no manual key setup needed.
+This writes a `.env.local` file with all the required environment variables (AI_GATEWAY_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY, VERCEL_OIDC_TOKEN) — no manual key setup needed. The framework automatically loads from both `.env` and `.env.local`.
 
 ## Tips
 
