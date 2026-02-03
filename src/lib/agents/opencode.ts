@@ -173,11 +173,6 @@ export function createOpenCodeAgent(): Agent {
         // Verify no test files in sandbox
         await verifyNoTestFiles(sandbox);
 
-        // Prepare enhanced prompt
-        const enhancedPrompt = `${options.prompt.trim()}
-
-IMPORTANT: Do not run npm, pnpm, yarn, or any package manager commands. Dependencies have already been installed. Do not run build, test, or dev server commands. Just write the code files.`;
-
         // Format model for OpenCode (needs vercel/ prefix for AI Gateway)
         const model = options.model.startsWith('vercel/')
           ? options.model
@@ -189,7 +184,7 @@ IMPORTANT: Do not run npm, pnpm, yarn, or any package manager commands. Dependen
           'opencode',
           [
             'run',
-            enhancedPrompt,
+            options.prompt,
             '--model',
             model,
             '--format',
