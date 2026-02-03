@@ -22,7 +22,6 @@
     "test:docker": "SANDBOX_BACKEND=docker vitest run src/lib/docker-sandbox.test.ts",
     "test:docker:integration": "SANDBOX_BACKEND=docker INTEGRATION_TEST=1 vitest run src/integration.test.ts",
     "test:integration": "INTEGRATION_TEST=1 vitest run src/integration.test.ts",
-    "test:sandbox": "npx tsx scripts/test-docker-sandbox.ts",
     "lint": "eslint src/",
     "prepublishOnly": "npm run build"
   },
