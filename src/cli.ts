@@ -16,7 +16,8 @@ import { initProject, getPostInitInstructions } from './lib/init.js';
 import { getAgent } from './lib/agents/index.js';
 import { getSandboxBackendInfo } from './lib/sandbox.js';
 
-// Load environment variables
+// Load environment variables (.env.local first, then .env as fallback)
+dotenvConfig({ path: '.env.local' });
 dotenvConfig();
 
 const program = new Command();
