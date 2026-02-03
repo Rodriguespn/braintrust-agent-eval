@@ -608,7 +608,7 @@ test('greet exists', () => {
 
       const result = await runSingleEval(fixture, {
         agent: 'vercel-ai-gateway/opencode',
-        model: 'vercel/anthropic/claude-sonnet-4',
+        model: 'anthropic/claude-sonnet-4',
         timeout: 180,
         apiKey: process.env.AI_GATEWAY_API_KEY!,
         scripts: ['build'],
@@ -681,7 +681,7 @@ test('contains greeting', () => {
 
       const result = await runSingleEval(fixture, {
         agent: 'vercel-ai-gateway/opencode',
-        model: 'vercel/anthropic/claude-sonnet-4',
+        model: 'anthropic/claude-sonnet-4',
         timeout: 180,
         apiKey: process.env.AI_GATEWAY_API_KEY!,
         scripts: ['build'],

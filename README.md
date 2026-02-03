@@ -218,23 +218,23 @@ See the Environment Variables section below for setup instructions.
 
 ### OpenCode Model Configuration
 
-OpenCode uses Vercel AI Gateway exclusively. Models are specified with the `vercel/{provider}/{model}` format:
+OpenCode uses Vercel AI Gateway exclusively. Models are specified with the `{provider}/{model}` format:
 
 ```typescript
 // Anthropic models
-model: 'vercel/anthropic/claude-sonnet-4'
-model: 'vercel/anthropic/claude-opus-4'
+model: 'anthropic/claude-sonnet-4'
+model: 'anthropic/claude-opus-4'
 
 // Moonshot AI (Kimi) models
-model: 'vercel/moonshotai/kimi-k2'
-model: 'vercel/moonshotai/kimi-k2-thinking'
+model: 'moonshotai/kimi-k2'
+model: 'moonshotai/kimi-k2-thinking'
 
 // OpenAI models
-model: 'vercel/openai/gpt-4o'
-model: 'vercel/openai/o3'
+model: 'openai/gpt-4o'
+model: 'openai/o3'
 ```
 
-Under the hood, the agent creates an `opencode.json` config file:
+Under the hood, the agent creates an `opencode.json` config file that configures the Vercel provider:
 
 ```json
 {
@@ -253,7 +253,7 @@ Under the hood, the agent creates an `opencode.json` config file:
 }
 ```
 
-And runs: `opencode run "<prompt>" --model vercel/... --format json`
+And runs: `opencode run "<prompt>" --model {provider}/{model} --format json`
 
 ### Full Configuration
 
@@ -267,7 +267,7 @@ const config: ExperimentConfig = {
   // Model to use (defaults vary by agent)
   // - claude-code: 'opus'
   // - codex: 'openai/gpt-5.2-codex'
-  // - opencode: 'vercel/anthropic/claude-sonnet-4'
+  // - opencode: 'anthropic/claude-sonnet-4'
   model: 'opus',
 
   // How many times to run each eval

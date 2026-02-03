@@ -77,7 +77,7 @@ export function createOpenCodeAgent(): Agent {
     },
 
     getDefaultModel(): ModelTier {
-      return 'vercel/anthropic/claude-sonnet-4';
+      return 'anthropic/claude-sonnet-4';
     },
 
     async run(fixturePath: string, options: AgentRunOptions): Promise<AgentRunResult> {
@@ -173,11 +173,6 @@ export function createOpenCodeAgent(): Agent {
         // Verify no test files in sandbox
         await verifyNoTestFiles(sandbox);
 
-        // Format model for OpenCode (needs vercel/ prefix for AI Gateway)
-        const model = options.model.startsWith('vercel/')
-          ? options.model
-          : `vercel/${options.model}`;
-
         // Run OpenCode CLI using run mode for non-interactive execution
         // Use --format json for structured output (transcript)
         const opencodeResult = await sandbox.runCommand(
@@ -186,7 +181,7 @@ export function createOpenCodeAgent(): Agent {
             'run',
             options.prompt,
             '--model',
-            model,
+            options.model,
             '--format',
             'json',
           ],
