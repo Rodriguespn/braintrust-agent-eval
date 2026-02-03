@@ -196,11 +196,6 @@ EOF`);
       // Verify no test files in sandbox
       await verifyNoTestFiles(sandbox);
 
-      // Prepare enhanced prompt
-      const enhancedPrompt = `${options.prompt.trim()}
-
-IMPORTANT: Do not run npm, pnpm, yarn, or any package manager commands. Dependencies have already been installed. Do not run build, test, or dev server commands. Just write the code files.`;
-
       // Run Codex CLI using exec mode for non-interactive execution
       // Use --dangerously-bypass-approvals-and-sandbox since Vercel sandbox provides isolation
       // Use --json for structured output and --skip-git-repo-check since sandbox is not a git repo
@@ -212,7 +207,7 @@ IMPORTANT: Do not run npm, pnpm, yarn, or any package manager commands. Dependen
           '--dangerously-bypass-approvals-and-sandbox',
           '--json',
           '--skip-git-repo-check',
-          enhancedPrompt,
+          options.prompt,
         ],
         {
           env: useVercelAiGateway

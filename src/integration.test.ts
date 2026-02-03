@@ -26,6 +26,8 @@ const hasAiGatewayCredentials =
 // Direct API credentials
 const hasAnthropicCredentials = process.env.ANTHROPIC_API_KEY && (process.env.VERCEL_TOKEN || process.env.VERCEL_OIDC_TOKEN);
 const hasOpenAiCredentials = process.env.OPENAI_API_KEY && (process.env.VERCEL_TOKEN || process.env.VERCEL_OIDC_TOKEN);
+// OpenCode credentials (only supports AI Gateway)
+const hasOpenCodeCredentials = hasAiGatewayCredentials;
 
 describe.skipIf(!process.env.INTEGRATION_TEST)('integration tests', () => {
   beforeAll(() => {
@@ -554,6 +556,167 @@ test('hello.ts exists', () => {
       expect(result).toHaveProperty('result');
       expect(result.result).toHaveProperty('status');
       expect(result.result).toHaveProperty('duration');
+    }, 300000); // 5 minute timeout
+  });
+
+  describe.skipIf(!hasOpenCodeCredentials)('OpenCode (Vercel AI Gateway) sandbox execution', () => {
+    it('can run a simple eval with OpenCode', async () => {
+      // Create a simple test fixture
+      const fixtureDir = join(TEST_DIR, 'simple-eval-opencode');
+      mkdirSync(join(fixtureDir, 'src'), { recursive: true });
+
+      writeFileSync(
+        join(fixtureDir, 'PROMPT.md'),
+        'Add a function called greet that returns "Hello!"'
+      );
+      writeFileSync(
+        join(fixtureDir, 'EVAL.ts'),
+        `
+import { test, expect } from 'vitest';
+import { readFileSync } from 'fs';
+
+test('greet exists', () => {
+  const content = readFileSync('src/index.ts', 'utf-8');
+  expect(content).toContain('greet');
+});
+`
+      );
+      writeFileSync(
+        join(fixtureDir, 'package.json'),
+        JSON.stringify({
+          name: 'simple-eval-opencode',
+          type: 'module',
+          scripts: { build: 'tsc' },
+          devDependencies: { typescript: '^5.0.0', vitest: '^2.1.0' },
+        })
+      );
+      writeFileSync(
+        join(fixtureDir, 'tsconfig.json'),
+        JSON.stringify({
+          compilerOptions: {
+            target: 'ES2020',
+            module: 'ESNext',
+            moduleResolution: 'bundler',
+            outDir: 'dist',
+          },
+          include: ['src'],
+        })
+      );
+      writeFileSync(join(fixtureDir, 'src/index.ts'), '// TODO: implement');
+
+      const fixture = loadFixture(TEST_DIR, 'simple-eval-opencode');
+
+      const result = await runSingleEval(fixture, {
+        agent: 'vercel-ai-gateway/opencode',
+        model: 'anthropic/claude-sonnet-4',
+        timeout: 180,
+        apiKey: process.env.AI_GATEWAY_API_KEY!,
+        scripts: ['build'],
+      });
+
+      // Verify result structure
+      expect(result.result.duration).toBeGreaterThan(0);
+      expect(result.result.status).toBeDefined();
+      expect(['passed', 'failed']).toContain(result.result.status);
+
+      // Verify output content exists (if available)
+      if (result.outputContent) {
+        expect(typeof result.outputContent).toBe('object');
+      }
+
+      // Verify transcript is captured (if available)
+      if (result.transcript) {
+        expect(typeof result.transcript).toBe('string');
+      }
+    }, 300000); // 5 minute timeout
+
+    it('verifies result output structure matches expected format', async () => {
+      // Create a simple test fixture
+      const fixtureDir = join(TEST_DIR, 'result-structure-opencode');
+      mkdirSync(join(fixtureDir, 'src'), { recursive: true });
+
+      writeFileSync(
+        join(fixtureDir, 'PROMPT.md'),
+        'Create a simple hello.ts file that exports a greeting constant.'
+      );
+      writeFileSync(
+        join(fixtureDir, 'EVAL.ts'),
+        `
+import { test, expect } from 'vitest';
+import { readFileSync, existsSync } from 'fs';
+
+test('hello.ts exists', () => {
+  expect(existsSync('src/hello.ts')).toBe(true);
+});
+
+test('contains greeting', () => {
+  const content = readFileSync('src/hello.ts', 'utf-8');
+  expect(content).toContain('greeting');
+});
+`
+      );
+      writeFileSync(
+        join(fixtureDir, 'package.json'),
+        JSON.stringify({
+          name: 'result-structure-opencode',
+          type: 'module',
+          scripts: { build: 'tsc' },
+          devDependencies: { typescript: '^5.0.0', vitest: '^2.1.0' },
+        })
+      );
+      writeFileSync(
+        join(fixtureDir, 'tsconfig.json'),
+        JSON.stringify({
+          compilerOptions: {
+            target: 'ES2020',
+            module: 'ESNext',
+            moduleResolution: 'bundler',
+            outDir: 'dist',
+          },
+          include: ['src'],
+        })
+      );
+
+      const fixture = loadFixture(TEST_DIR, 'result-structure-opencode');
+
+      const result = await runSingleEval(fixture, {
+        agent: 'vercel-ai-gateway/opencode',
+        model: 'anthropic/claude-sonnet-4',
+        timeout: 180,
+        apiKey: process.env.AI_GATEWAY_API_KEY!,
+        scripts: ['build'],
+      });
+
+      // Verify EvalRunData structure
+      expect(result).toHaveProperty('result');
+      expect(result.result).toHaveProperty('status');
+      expect(result.result).toHaveProperty('duration');
+
+      // Verify optional properties have correct types when present
+      if (result.result.error) {
+        expect(typeof result.result.error).toBe('string');
+      }
+
+      // Verify transcript structure if present
+      if (result.transcript) {
+        expect(typeof result.transcript).toBe('string');
+        // OpenCode uses JSON format
+        try {
+          JSON.parse(result.transcript.split('\n')[0]);
+        } catch {
+          // It's fine if it's not valid JSON - transcript format may vary
+        }
+      }
+
+      // Verify output content structure if present
+      if (result.outputContent) {
+        if (result.outputContent.eval) {
+          expect(typeof result.outputContent.eval).toBe('string');
+        }
+        if (result.outputContent.scripts?.build) {
+          expect(typeof result.outputContent.scripts.build).toBe('string');
+        }
+      }
     }, 300000); // 5 minute timeout
   });
 

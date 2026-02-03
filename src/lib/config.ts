@@ -31,6 +31,7 @@ const experimentConfigSchema = z.object({
     'claude-code',
     'vercel-ai-gateway/codex',
     'codex',
+    'vercel-ai-gateway/opencode',
   ]),
   model: z.string().optional(),
   evals: z

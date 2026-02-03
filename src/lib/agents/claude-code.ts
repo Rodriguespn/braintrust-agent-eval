@@ -152,15 +152,10 @@ export function createClaudeCodeAgent({ useVercelAiGateway }: { useVercelAiGatew
       // Verify no test files in sandbox
       await verifyNoTestFiles(sandbox);
 
-      // Prepare enhanced prompt
-      const enhancedPrompt = `${options.prompt.trim()}
-
-IMPORTANT: Do not run npm, pnpm, yarn, or any package manager commands. Dependencies have already been installed. Do not run build, test, or dev server commands. Just write the code files.`;
-
       // Run Claude Code with appropriate authentication
       const claudeResult = await sandbox.runCommand(
         'claude',
-        ['--print', '--model', options.model, '--dangerously-skip-permissions', enhancedPrompt],
+        ['--print', '--model', options.model, '--dangerously-skip-permissions', options.prompt],
         {
           env: useVercelAiGateway
             ? {
