@@ -285,8 +285,8 @@ const config: ExperimentConfig = {
   // npm scripts that must pass after agent finishes
   scripts: ['build', 'lint'],
 
-  // Timeout per run in seconds
-  timeout: 300,
+  // Timeout per run in seconds (default: 600)
+  timeout: 600,
 
   // Filter which evals to run (pick one)
   evals: '*',                                // all (default)

@@ -19,7 +19,7 @@ export const CONFIG_DEFAULTS = {
   runs: 1,
   earlyExit: true,
   scripts: [] as string[],
-  timeout: 300, // 5 minutes
+  timeout: 600, // 10 minutes
   sandbox: 'auto' as const,
 };
 

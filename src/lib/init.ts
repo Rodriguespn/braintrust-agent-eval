@@ -91,7 +91,7 @@ const config: ExperimentConfig = {
   runs: 1,
   earlyExit: true,
   scripts: ['build'],
-  timeout: 300,
+  timeout: 600,
 };
 
 export default config;
@@ -109,7 +109,7 @@ const config: ExperimentConfig = {
   runs: 1,
   earlyExit: true,
   scripts: ['build'],
-  timeout: 300,
+  timeout: 600,
 };
 
 export default config;
