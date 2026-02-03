@@ -216,6 +216,45 @@ agent: 'codex'        // requires OPENAI_API_KEY
 
 See the Environment Variables section below for setup instructions.
 
+### OpenCode Model Configuration
+
+OpenCode uses Vercel AI Gateway exclusively. Models are specified with the `vercel/{provider}/{model}` format:
+
+```typescript
+// Anthropic models
+model: 'vercel/anthropic/claude-sonnet-4'
+model: 'vercel/anthropic/claude-opus-4'
+
+// Moonshot AI (Kimi) models
+model: 'vercel/moonshotai/kimi-k2'
+model: 'vercel/moonshotai/kimi-k2-thinking'
+
+// OpenAI models
+model: 'vercel/openai/gpt-4o'
+model: 'vercel/openai/o3'
+```
+
+Under the hood, the agent creates an `opencode.json` config file:
+
+```json
+{
+  "provider": {
+    "vercel": {
+      "options": {
+        "apiKey": "{env:AI_GATEWAY_API_KEY}"
+      }
+    }
+  },
+  "permission": {
+    "write": "allow",
+    "edit": "allow",
+    "bash": "allow"
+  }
+}
+```
+
+And runs: `opencode run "<prompt>" --model vercel/... --format json`
+
 ### Full Configuration
 
 ```typescript
