@@ -38,7 +38,7 @@ export function EvalsPage({ evals }: EvalsPageProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {evals.map((evalInfo) => (
             <a key={evalInfo.name} href={`/evals/${encodeURIComponent(evalInfo.name)}`} className="block cursor-pointer">
-            <Card className="hover:bg-muted/40 transition-colors">
+            <Card className="transition-colors hover:bg-muted">
               <CardHeader>
                 <CardTitle className="text-base">{evalInfo.name}</CardTitle>
               </CardHeader>

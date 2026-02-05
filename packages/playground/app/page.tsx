@@ -21,8 +21,9 @@ export default function HomePage() {
     <div className="space-y-10">
       {/* Hero */}
       <div>
+        <h1 className="text-2xl font-bold tracking-tight">Overview</h1>
         <p className="text-muted-foreground mt-1">
-          Overview of your agent evaluation results.
+          Playground for your agent evals to view experiments, evals, and compare runs.
         </p>
       </div>
 
@@ -80,7 +81,7 @@ export default function HomePage() {
                   : "/experiments"}
                 className="block cursor-pointer"
               >
-                <Card className="transition-colors hover:bg-muted/50">
+                <Card className="transition-colors hover:bg-muted">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm">{exp.name}</CardTitle>
                   </CardHeader>
@@ -135,7 +136,7 @@ export default function HomePage() {
                 href={`/evals/${encodeURIComponent(evalInfo.name)}`}
                 className="block cursor-pointer"
               >
-                <Card className="transition-colors hover:bg-muted/40">
+                <Card className="transition-colors hover:bg-muted">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm">{evalInfo.name}</CardTitle>
                   </CardHeader>
@@ -162,7 +163,7 @@ export default function HomePage() {
           <h2 className="text-lg font-semibold tracking-tight">Compare</h2>
         </div>
         <Link href="/compare" className="block cursor-pointer">
-          <Card className="transition-colors hover:bg-muted/50">
+          <Card className="transition-colors hover:bg-muted">
             <CardContent className="py-8 text-center">
               <p className="mx-auto max-w-sm text-sm text-muted-foreground">
                 Compare two experiment runs side-by-side to see pass rate deltas, duration changes, and per-eval breakdowns.

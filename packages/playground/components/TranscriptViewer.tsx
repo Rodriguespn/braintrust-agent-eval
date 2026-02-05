@@ -48,54 +48,44 @@ function TranscriptEventCard({ event, index }: { event: TranscriptEvent; index: 
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <Card className="border-l-4 transition-colors hover:bg-muted/50" style={{ borderLeftColor: getEventColor(event.type) }}>
-        <CollapsibleTrigger className="w-full text-left" disabled={!hasExpandableContent}>
-          <CardContent className="py-2.5 px-4">
-            <div className="flex items-start gap-3">
-              <div className="flex items-center gap-2 shrink-0 mt-0.5">
-                <span className="text-xs text-muted-foreground w-6 text-right font-mono">
-                  {index + 1}
-                </span>
-                <Icon className="h-3.5 w-3.5 text-muted-foreground" />
-                <Badge variant={config.variant} className="text-xs">
-                  {event.type === "tool_call" && event.tool
-                    ? event.tool.originalName
-                    : config.label}
+      <Card size="sm" className="border-l-4 overflow-hidden" style={{ borderLeftColor: getEventColor(event.type) }}>
+        <CollapsibleTrigger className="w-full text-left cursor-pointer transition-colors hover:bg-muted rounded-t-lg" disabled={!hasExpandableContent}>
+          <CardContent className="py-0 px-4">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-xs text-muted-foreground w-5 text-right font-mono shrink-0">
+                {index + 1}
+              </span>
+              <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              <Badge variant={config.variant} className="text-xs shrink-0 max-w-32 truncate">
+                {event.type === "tool_call" && event.tool
+                  ? event.tool.originalName
+                  : config.label}
+              </Badge>
+              {event.role && (
+                <Badge variant="outline" className="text-xs shrink-0">
+                  {event.role}
                 </Badge>
-                {event.role && (
-                  <Badge variant="outline" className="text-xs">
-                    {event.role}
-                  </Badge>
-                )}
-              </div>
-
-              <div className="flex-1 min-w-0">
-                {preview && (
-                  <p className="text-sm text-muted-foreground truncate">
-                    {preview}
-                  </p>
-                )}
-              </div>
-
-              <div className="flex items-center gap-2 shrink-0">
-                {event.tool?.durationMs !== undefined && (
-                  <span className="text-xs text-muted-foreground">
-                    {event.tool.durationMs}ms
-                  </span>
-                )}
-                {hasExpandableContent && (
-                  <ChevronRight
-                    className={`h-4 w-4 text-muted-foreground transition-transform ${
-                      isOpen ? "rotate-90" : ""
-                    }`}
-                  />
-                )}
-              </div>
+              )}
+              <p className="flex-1 min-w-0 text-xs text-muted-foreground truncate">
+                {preview}
+              </p>
+              {event.tool?.durationMs !== undefined && (
+                <span className="text-xs text-muted-foreground shrink-0">
+                  {event.tool.durationMs}ms
+                </span>
+              )}
+              {hasExpandableContent && (
+                <ChevronRight
+                  className={`h-3.5 w-3.5 text-muted-foreground shrink-0 transition-transform ${
+                    isOpen ? "rotate-90" : ""
+                  }`}
+                />
+              )}
             </div>
           </CardContent>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <div className="px-4 pb-3 space-y-2">
+          <div className="px-4 pb-0 space-y-2">
             <Separator />
             {event.content && (
               <pre className="text-xs font-mono bg-muted rounded p-3 overflow-x-auto whitespace-pre-wrap max-h-96 overflow-y-auto">
@@ -154,72 +144,59 @@ export function TranscriptViewer({ transcript }: TranscriptViewerProps) {
       </TabsList>
 
       <TabsContent value="timeline" className="mt-4">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
-          {/* Timeline */}
-          <ScrollArea className="h-[calc(100vh-280px)]">
-            <div className="space-y-2 pr-4">
-              {transcript.events.map((event, i) => (
-                <TranscriptEventCard key={i} event={event} index={i} />
-              ))}
-              {transcript.events.length === 0 && (
-                <Card>
-                  <CardContent className="py-8 text-center text-muted-foreground">
-                    No transcript events found.
-                  </CardContent>
-                </Card>
-              )}
+        <div className="space-y-6">
+          {/* Summary */}
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm">
+            <div>
+              <span className="text-muted-foreground">Agent </span>
+              <span className="font-medium">{transcript.agent}</span>
             </div>
-          </ScrollArea>
+            {transcript.model && (
+              <div>
+                <span className="text-muted-foreground">Model </span>
+                <span className="font-medium">{transcript.model}</span>
+              </div>
+            )}
+            <div>
+              <span className="text-muted-foreground">Events </span>
+              <span className="font-medium">{transcript.events.length}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Status </span>
+              <Badge
+                variant={transcript.parseSuccess ? "default" : "destructive"}
+                className="text-xs"
+              >
+                {transcript.parseSuccess ? "Success" : "Partial"}
+              </Badge>
+            </div>
+          </div>
 
-          {/* Sidebar */}
-          <ScrollArea className="h-[calc(100vh-280px)]">
-            <div className="space-y-4">
+          <O11ySummary summary={transcript.summary} />
+
+          {/* Timeline */}
+          <div className="space-y-2">
+            {transcript.events.map((event, i) => (
+              <TranscriptEventCard key={i} event={event} index={i} />
+            ))}
+            {transcript.events.length === 0 && (
               <Card>
-                <CardContent className="py-3 px-4">
-                  <div className="space-y-1 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Agent</span>
-                      <span className="font-medium">{transcript.agent}</span>
-                    </div>
-                    {transcript.model && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Model</span>
-                        <span className="font-medium">{transcript.model}</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Events</span>
-                      <span className="font-medium">
-                        {transcript.events.length}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Parse Status</span>
-                      <Badge
-                        variant={transcript.parseSuccess ? "default" : "destructive"}
-                        className="text-xs"
-                      >
-                        {transcript.parseSuccess ? "Success" : "Partial"}
-                      </Badge>
-                    </div>
-                  </div>
+                <CardContent className="py-8 text-center text-muted-foreground">
+                  No transcript events found.
                 </CardContent>
               </Card>
-              <O11ySummary summary={transcript.summary} />
-            </div>
-          </ScrollArea>
+            )}
+          </div>
         </div>
       </TabsContent>
 
       <TabsContent value="summary" className="mt-4">
-        <div className="max-w-lg">
-          <O11ySummary summary={transcript.summary} />
-        </div>
+        <O11ySummary summary={transcript.summary} />
       </TabsContent>
 
       <TabsContent value="raw" className="mt-4">
         <ScrollArea className="h-[calc(100vh-280px)]">
-          <pre className="text-xs font-mono bg-muted rounded p-4 overflow-x-auto whitespace-pre-wrap">
+          <pre className="text-xs font-mono bg-muted rounded p-4 whitespace-pre-wrap break-all">
             {JSON.stringify(transcript, null, 2)}
           </pre>
         </ScrollArea>

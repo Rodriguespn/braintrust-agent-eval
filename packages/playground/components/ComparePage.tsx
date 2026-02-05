@@ -51,12 +51,6 @@ interface ComparePageProps {
 }
 
 export function ComparePage({ experiments }: ComparePageProps) {
-  const [leftSelection, setLeftSelection] = useState<CompareSelection | null>(null);
-  const [rightSelection, setRightSelection] = useState<CompareSelection | null>(null);
-
-  const [leftData, setLeftData] = useState<ExperimentDetailData | null>(null);
-  const [rightData, setRightData] = useState<ExperimentDetailData | null>(null);
-
   // Build the options list: "experiment / timestamp"
   const options = experiments.flatMap((exp) =>
     exp.timestamps.map((ts) => ({
@@ -66,6 +60,22 @@ export function ComparePage({ experiments }: ComparePageProps) {
       timestamp: ts,
     }))
   );
+
+  // Pre-select the two most recent runs if available
+  const defaultLeft = options.length >= 2
+    ? { experiment: options[0].experiment, timestamp: options[0].timestamp }
+    : options.length >= 1
+      ? { experiment: options[0].experiment, timestamp: options[0].timestamp }
+      : null;
+  const defaultRight = options.length >= 2
+    ? { experiment: options[1].experiment, timestamp: options[1].timestamp }
+    : null;
+
+  const [leftSelection, setLeftSelection] = useState<CompareSelection | null>(defaultLeft);
+  const [rightSelection, setRightSelection] = useState<CompareSelection | null>(defaultRight);
+
+  const [leftData, setLeftData] = useState<ExperimentDetailData | null>(null);
+  const [rightData, setRightData] = useState<ExperimentDetailData | null>(null);
 
   const loadSide = useCallback(
     async (
@@ -118,6 +128,7 @@ export function ComparePage({ experiments }: ComparePageProps) {
           </CardHeader>
           <CardContent>
             <Select
+              value={leftSelection ? `${leftSelection.experiment}|||${leftSelection.timestamp}` : undefined}
               onValueChange={(v) => {
                 const opt = options.find((o) => o.value === v);
                 if (opt)
@@ -149,6 +160,7 @@ export function ComparePage({ experiments }: ComparePageProps) {
           </CardHeader>
           <CardContent>
             <Select
+              value={rightSelection ? `${rightSelection.experiment}|||${rightSelection.timestamp}` : undefined}
               onValueChange={(v) => {
                 const opt = options.find((o) => o.value === v);
                 if (opt)
