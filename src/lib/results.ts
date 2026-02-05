@@ -13,6 +13,7 @@ import type {
   ResolvedExperimentConfig,
 } from './types.js';
 import type { AgentRunResult } from './agents/types.js';
+import { parseTranscript, type Transcript } from './o11y/index.js';
 
 /**
  * Convert AgentRunResult to EvalRunData (result + transcript).
@@ -102,7 +103,8 @@ export interface SaveResultsOptions {
  *       eval-1/
  *         run-1/
  *           result.json
- *           transcript.jsonl
+ *           transcript.json      (parsed/structured - primary format)
+ *           transcript-raw.jsonl (raw agent output - for debugging)
  *           outputs/
  *         summary.json
  */
@@ -139,13 +141,33 @@ export function saveResults(
       const runDir = join(evalDir, `run-${i + 1}`);
       mkdirSync(runDir, { recursive: true });
 
-      // Build the result with paths
-      const resultWithPaths = { ...runData.result };
+      // Build the result with paths and o11y summary
+      const resultWithPaths: EvalRunResult & { o11y?: Transcript['summary'] } = {
+        ...runData.result,
+      };
 
-      // Save transcript.jsonl if available
+      // Save transcripts if available
       if (runData.transcript) {
-        writeFileSync(join(runDir, 'transcript.jsonl'), runData.transcript);
-        resultWithPaths.transcriptPath = './transcript.jsonl';
+        // Parse the raw transcript
+        const transcript = parseTranscript(
+          runData.transcript,
+          results.config.agent,
+          results.config.model
+        );
+
+        // Save parsed transcript as primary format (transcript.json)
+        writeFileSync(
+          join(runDir, 'transcript.json'),
+          JSON.stringify(transcript, null, 2)
+        );
+        resultWithPaths.transcriptPath = './transcript.json';
+
+        // Save raw transcript for debugging (transcript-raw.jsonl)
+        writeFileSync(join(runDir, 'transcript-raw.jsonl'), runData.transcript);
+        resultWithPaths.transcriptRawPath = './transcript-raw.jsonl';
+
+        // Include summary in result.json for quick access
+        resultWithPaths.o11y = transcript.summary;
       }
 
       // Save script/test outputs to outputs/
@@ -178,7 +200,7 @@ export function saveResults(
         }
       }
 
-      // Save result.json with paths
+      // Save result.json with paths and o11y summary
       writeFileSync(
         join(runDir, 'result.json'),
         JSON.stringify(resultWithPaths, null, 2)
