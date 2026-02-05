@@ -26,7 +26,7 @@
     "lint": "eslint src/",
     "changeset": "changeset",
     "version": "changeset version",
-    "release": "npm run build && changeset publish",
+    "release": "npm run build && npm publish --provenance --access public",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
