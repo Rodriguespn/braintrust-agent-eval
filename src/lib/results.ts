@@ -149,10 +149,14 @@ export function saveResults(
       // Save transcripts if available
       if (runData.transcript) {
         // Parse the raw transcript
+        // Model can be string or array - use first if array
+        const model = Array.isArray(results.config.model)
+          ? results.config.model[0]
+          : results.config.model;
         const transcript = parseTranscript(
           runData.transcript,
           results.config.agent,
-          results.config.model
+          model
         );
 
         // Save parsed transcript as primary format (transcript.json)
