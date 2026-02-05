@@ -101,8 +101,19 @@ async function runExperimentCommand(configInput: string, options: { dry?: boolea
       console.log(chalk.green(`  - ${name}`));
     }
 
-    console.log(chalk.blue(`\nRunning ${evalNames.length} eval(s) x ${config.runs} run(s) = ${evalNames.length * config.runs} total runs`));
-    console.log(chalk.blue(`Agent: ${config.agent}, Model: ${config.model}, Timeout: ${config.timeout}s, Early Exit: ${config.earlyExit}`));
+	const models = Array.isArray(config.model) ? config.model : [config.model];
+
+    // Show info for all models
+    const totalRunsPerModel = evalNames.length * config.runs;
+    const totalRuns = totalRunsPerModel * models.length;
+
+    if (models.length > 1) {
+      console.log(chalk.blue(`\nRunning ${evalNames.length} eval(s) x ${config.runs} run(s) x ${models.length} model(s) = ${totalRuns} total runs`));
+      console.log(chalk.blue(`Agent: ${config.agent}, Models: ${models.join(', ')}, Timeout: ${config.timeout}s, Early Exit: ${config.earlyExit}`));
+    } else {
+      console.log(chalk.blue(`\nRunning ${evalNames.length} eval(s) x ${config.runs} run(s) = ${totalRuns} total runs`));
+      console.log(chalk.blue(`Agent: ${config.agent}, Model: ${models[0]}, Timeout: ${config.timeout}s, Early Exit: ${config.earlyExit}`));
+    }
 
     // Show which sandbox backend will be used
     const sandboxInfo = getSandboxBackendInfo({ backend: config.sandbox });
@@ -127,23 +138,44 @@ async function runExperimentCommand(configInput: string, options: { dry?: boolea
     const selectedFixtures = fixtures.filter((f) => evalNames.includes(f.name));
 
     // Get experiment name from config file
-    const experimentName = basename(configPath, '.ts').replace(/\.js$/, '');
+    const baseExperimentName = basename(configPath, '.ts').replace(/\.js$/, '');
     const resultsDir = resolve(process.cwd(), 'results');
 
     console.log(chalk.blue('\nStarting experiment...'));
 
-    // Run the experiment
-    const results = await runExperiment({
-      config,
-      fixtures: selectedFixtures,
-      apiKey,
-      resultsDir,
-      experimentName,
-      onProgress: (msg) => console.log(msg),
-    });
+    // Run experiments for each model
+    let allPassed = true;
+    for (const model of models) {
+      // Create a config for this specific model
+      const modelConfig = { ...config, model };
+
+      // Include model in experiment name when multiple models are specified
+      const experimentName = models.length > 1
+        ? `${baseExperimentName}/${model}`
+        : baseExperimentName;
+
+      if (models.length > 1) {
+        console.log(chalk.blue(`\n--- Running with model: ${model} ---`));
+      }
+
+      // Run the experiment
+      const results = await runExperiment({
+        config: modelConfig,
+        fixtures: selectedFixtures,
+        apiKey,
+        resultsDir,
+        experimentName,
+        onProgress: (msg) => console.log(msg),
+      });
+
+      // Check if this experiment passed
+      const experimentPassed = results.evals.every((e) => e.passedRuns === e.totalRuns);
+      if (!experimentPassed) {
+        allPassed = false;
+      }
+    }
 
     // Exit with appropriate code
-    const allPassed = results.evals.every((e) => e.passedRuns === e.totalRuns);
     process.exit(allPassed ? 0 : 1);
   } catch (error) {
     if (error instanceof Error) {

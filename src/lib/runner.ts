@@ -10,6 +10,7 @@ import type {
   EvalRunData,
   EvalSummary,
   ExperimentResults,
+  RunnableExperimentConfig,
 } from './types.js';
 import { getAgent } from './agents/index.js';
 import {
@@ -27,7 +28,7 @@ import {
  */
 export interface RunExperimentOptions {
   /** Resolved experiment configuration */
-  config: ResolvedExperimentConfig;
+  config: RunnableExperimentConfig;
   /** Fixtures to run */
   fixtures: EvalFixture[];
   /** API key for the agent */
@@ -246,11 +247,11 @@ export async function runExperiment(
 /**
  * Run a single eval (for testing/debugging).
  */
-export async function runSingleEval(
+export async function runSingleEval<T extends ResolvedExperimentConfig['model']>(
   fixture: EvalFixture,
   options: {
     agent?: ResolvedExperimentConfig['agent'];
-    model: ResolvedExperimentConfig['model'];
+    model: T;
     timeout: number;
     apiKey: string;
     setup?: ResolvedExperimentConfig['setup'];
@@ -258,18 +259,32 @@ export async function runSingleEval(
     sandbox?: ResolvedExperimentConfig['sandbox'];
     verbose?: boolean;
   }
-): Promise<EvalRunData> {
+): Promise<T extends Array<unknown> ? EvalRunData[] : EvalRunData> {
   const agent = getAgent(options.agent ?? 'vercel-ai-gateway/claude-code');
 
-  const agentResult = await agent.run(fixture.path, {
-    prompt: fixture.prompt,
-    model: options.model,
-    timeout: options.timeout * 1000,
-    apiKey: options.apiKey,
-    setup: options.setup,
-    scripts: options.scripts,
-    sandbox: options.sandbox,
-  });
+  const models: string[] = Array.isArray(options.model) ? options.model : [options.model];
 
-  return agentResultToEvalRunData(agentResult);
+  const results: EvalRunData[] = [];
+
+  for (const model of models) {
+
+	const agentResult = await agent.run(fixture.path, {
+		prompt: fixture.prompt,
+		model,
+		timeout: options.timeout * 1000,
+		apiKey: options.apiKey,
+		setup: options.setup,
+		scripts: options.scripts,
+		sandbox: options.sandbox,
+	});
+
+    results.push(agentResultToEvalRunData(agentResult));
+  }
+
+  // TODO: remove this on the next major and return an array directly...it's just here to prevent breaking changes
+  if(!Array.isArray(options.model)) {
+	return results[0] as T extends Array<unknown> ? EvalRunData[] : EvalRunData;
+  }
+
+  return results as T extends Array<unknown> ? EvalRunData[] : EvalRunData;
 }

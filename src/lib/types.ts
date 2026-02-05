@@ -61,8 +61,10 @@ export interface ExperimentConfig {
   /** Which AI agent to use */
   agent: AgentType;
 
-  /** Which AI model the agent should use. Default is agent-specific: 'opus' for claude-code, 'openai/gpt-5.2-codex' for codex */
-  model?: ModelTier;
+  /** Which AI model the agent should use. Can be a single model or array of models to test.
+   * If an array is provided, the experiment will run on each model.
+   * Default is agent-specific: 'opus' for claude-code, 'openai/gpt-5.2-codex' for codex */
+  model?: ModelTier | ModelTier[];
 
   /** Which evals to run. Can be a string, array, or filter function. @default '*' (all evals) */
   evals?: string | string[] | EvalFilter;
@@ -90,6 +92,21 @@ export interface ExperimentConfig {
  * Resolved experiment config with all defaults applied.
  */
 export interface ResolvedExperimentConfig {
+  agent: AgentType;
+  model: ModelTier | ModelTier[];
+  evals: string | string[] | EvalFilter;
+  runs: number;
+  earlyExit: boolean;
+  scripts: string[];
+  timeout: number;
+  setup?: SetupFunction;
+  sandbox: SandboxBackend | 'auto';
+}
+
+/**
+ * Resolved experiment config with all defaults applied.
+ */
+export interface RunnableExperimentConfig {
   agent: AgentType;
   model: ModelTier;
   evals: string | string[] | EvalFilter;

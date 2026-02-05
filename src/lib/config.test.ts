@@ -25,6 +25,14 @@ describe('validateConfig', () => {
     expect(() => validateConfig(config)).not.toThrow();
   });
 
+  it('accepts array of models', () => {
+    const config = {
+      agent: 'claude-code',
+      model: ['opus', 'sonnet', 'haiku'],
+    };
+    expect(() => validateConfig(config)).not.toThrow();
+  });
+
   it('accepts function evals filter', () => {
     const config = {
       agent: 'claude-code',
