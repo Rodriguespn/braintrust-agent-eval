@@ -4,7 +4,7 @@
   "description": "Framework for testing AI coding agents in isolated sandboxes",
   "repository": {
     "type": "git",
-    "url": "https://github.com/vercel-labs/agent-eval.git"
+    "url": "git+https://github.com/vercel-labs/agent-eval.git"
   },
   "type": "module",
   "main": "dist/index.js",
@@ -26,7 +26,7 @@
     "lint": "eslint src/",
     "changeset": "changeset",
     "version": "changeset version",
-    "release": "npm run build && npm publish --provenance --access public",
+    "release": "npm run build && changeset publish",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
@@ -66,6 +66,7 @@
   ],
   "license": "MIT",
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "provenance": true
   }
 }
