@@ -8,7 +8,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "release": "changeset publish"
   },
   "dependencies": {
     "@base-ui/react": "^1.1.0",
@@ -35,12 +36,17 @@
   "files": [
     "app",
     "components",
-    "hooks",
     "lib",
+    "public",
     "bin.mjs",
     "next.config.ts",
     "tsconfig.json",
     "postcss.config.mjs",
     "components.json"
-  ]
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "license": "MIT"
 }
