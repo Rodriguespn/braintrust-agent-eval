@@ -86,6 +86,9 @@ export interface ExperimentConfig {
 
   /** Sandbox backend to use. @default 'auto' (Vercel if token present, else Docker) */
   sandbox?: SandboxBackend | 'auto';
+
+  /** Optional function to modify the prompt before running the experiment. @default undefined */
+  editPrompt?: (prompt: string) => string;
 }
 
 /**
@@ -101,6 +104,7 @@ export interface ResolvedExperimentConfig {
   timeout: number;
   setup?: SetupFunction;
   sandbox: SandboxBackend | 'auto';
+  editPrompt?: (prompt: string) => string;
 }
 
 /**
@@ -116,6 +120,7 @@ export interface RunnableExperimentConfig {
   timeout: number;
   setup?: SetupFunction;
   sandbox: SandboxBackend | 'auto';
+  editPrompt?: (prompt: string) => string;
 }
 
 /**

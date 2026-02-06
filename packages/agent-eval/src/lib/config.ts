@@ -44,6 +44,7 @@ const experimentConfigSchema = z.object({
   timeout: z.number().positive().optional(),
   setup: z.function().optional(),
   sandbox: z.enum(['vercel', 'docker', 'auto']).optional(),
+  editPrompt: z.function().args(z.string()).returns(z.string()).optional(),
 });
 
 /**
@@ -83,6 +84,7 @@ export function resolveConfig(config: ExperimentConfig): ResolvedExperimentConfi
     timeout: config.timeout ?? CONFIG_DEFAULTS.timeout,
     setup: config.setup,
     sandbox: config.sandbox ?? CONFIG_DEFAULTS.sandbox,
+    editPrompt: config.editPrompt,
   };
 }
 

@@ -132,7 +132,7 @@ export async function runExperiment(
 
     const agentResult = await Promise.race([
       agent.run(fixture.path, {
-        prompt: fixture.prompt,
+        prompt: config.editPrompt ? config.editPrompt(fixture.prompt) : fixture.prompt,
         model: config.model,
         timeout: timeoutMs,
         apiKey,
@@ -257,19 +257,21 @@ export async function runSingleEval<T extends ResolvedExperimentConfig['model']>
     setup?: ResolvedExperimentConfig['setup'];
     scripts?: string[];
     sandbox?: ResolvedExperimentConfig['sandbox'];
+    editPrompt?: (prompt: string) => string;
     verbose?: boolean;
   }
 ): Promise<T extends Array<unknown> ? EvalRunData[] : EvalRunData> {
   const agent = getAgent(options.agent ?? 'vercel-ai-gateway/claude-code');
 
   const models: string[] = Array.isArray(options.model) ? options.model : [options.model];
+  const prompt = options.editPrompt ? options.editPrompt(fixture.prompt) : fixture.prompt;
 
   const results: EvalRunData[] = [];
 
   for (const model of models) {
 
 	const agentResult = await agent.run(fixture.path, {
-		prompt: fixture.prompt,
+		prompt,
 		model,
 		timeout: options.timeout * 1000,
 		apiKey: options.apiKey,
