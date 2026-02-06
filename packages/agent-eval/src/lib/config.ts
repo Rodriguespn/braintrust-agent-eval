@@ -94,9 +94,21 @@ export function resolveConfig(config: ExperimentConfig): ResolvedExperimentConfi
  */
 export async function loadConfig(configPath: string): Promise<ResolvedExperimentConfig> {
   try {
-    // Dynamic import of the config file
-    const module = await import(configPath);
-    const rawConfig = module.default;
+    let rawConfig: unknown;
+
+    // Use jiti for TypeScript files
+    if (configPath.endsWith('.ts')) {
+      const { createJiti } = await import('jiti');
+      const jiti = createJiti(import.meta.url, {
+        interopDefault: true,
+        moduleCache: false,
+      });
+      rawConfig = await jiti.import(configPath);
+    } else {
+      // Dynamic import for JavaScript files
+      const module = await import(configPath);
+      rawConfig = module.default;
+    }
 
     if (!rawConfig) {
       throw new Error(`Config file must have a default export`);
