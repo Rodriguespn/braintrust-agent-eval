@@ -35,7 +35,7 @@ function getPackageJson(projectName: string): string {
       private: true,
       type: 'module',
       devDependencies: {
-        'agent-eval': `^${pkg.version}`,
+        '@vercel/agent-eval': `^${pkg.version}`,
         '@types/node': '^22.0.0',
         typescript: '^5.6.0',
         vitest: '^2.1.0',
