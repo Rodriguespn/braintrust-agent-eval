@@ -1,5 +1,11 @@
 # @vercel/agent-eval-playground
 
+## 0.0.5
+
+### Patch Changes
+
+- [`6159d01`](https://github.com/vercel-labs/agent-eval/commit/6159d01b6e2a064bfb4abd8006b7797c553c58f2) Thanks [@allenzhou101](https://github.com/allenzhou101)! - Run playground in production mode (`next start`) instead of dev mode (`next dev`) to fix React version conflicts and "Cannot read properties of null (reading 'useInsertionEffect')" errors when running via npx.
+
 ## 0.0.4
 
 ### Patch Changes
