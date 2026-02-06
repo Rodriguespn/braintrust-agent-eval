@@ -146,7 +146,7 @@ Open [http://localhost:3000](http://localhost:3000) to browse results.
  * Get the default experiment configuration template (Claude Code).
  */
 function getCCExperiment(): string {
-  return `import type { ExperimentConfig } from 'agent-eval';
+  return `import type { ExperimentConfig } from '@vercel/agent-eval';
 
 const config: ExperimentConfig = {
   agent: 'vercel-ai-gateway/claude-code',
@@ -164,7 +164,7 @@ export default config;
  * Get the Codex experiment configuration template.
  */
 function getCodexExperiment(): string {
-  return `import type { ExperimentConfig } from 'agent-eval';
+  return `import type { ExperimentConfig } from '@vercel/agent-eval';
 
 const config: ExperimentConfig = {
   agent: 'vercel-ai-gateway/codex',
