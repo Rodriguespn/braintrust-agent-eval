@@ -1,5 +1,11 @@
 # @vercel/agent-eval
 
+## 0.0.14
+
+### Patch Changes
+
+- [#23](https://github.com/vercel-labs/agent-eval/pull/23) [`02b86e0`](https://github.com/vercel-labs/agent-eval/commit/02b86e0b172d61d3c828a2521404c32675e99876) Thanks [@allenzhou101](https://github.com/allenzhou101)! - Also fixed `init` command to dynamically use the current package version (matching create-next-app pattern) instead of hardcoded "^0.0.1" in the generated package.json.
+
 ## 0.0.13
 
 ### Patch Changes

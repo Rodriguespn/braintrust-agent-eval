@@ -274,7 +274,8 @@ const config: ExperimentConfig = {
   // - claude-code: 'opus'
   // - codex: 'openai/gpt-5.2-codex'
   // - opencode: 'vercel/anthropic/claude-sonnet-4' (note: vercel/ prefix required)
-  model: 'opus',
+  // Provide an array to run the same experiment across multiple models.
+  model: ['opus', 'sonnet'],
 
   // How many times to run each eval
   runs: 10,
@@ -298,6 +299,11 @@ const config: ExperimentConfig = {
     await sandbox.writeFiles({ '.env': 'API_KEY=test' });
     await sandbox.runCommand('npm', ['run', 'setup']);
   },
+
+  // Optional hook to rewrite the prompt before running.
+  // Useful for appending instructions like "use the skill"
+  // or wrapping the prompt in an MCP template.
+  editPrompt: (prompt: string) => `Use the skill.\n\n${prompt}`,
 };
 
 export default config;
