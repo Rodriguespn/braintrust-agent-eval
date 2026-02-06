@@ -1,5 +1,11 @@
 # @vercel/agent-eval-playground
 
+## 0.0.3
+
+### Patch Changes
+
+- [`6425d0a`](https://github.com/vercel-labs/agent-eval/commit/6425d0acb4e6e4bcb5f95d34001e1e369a7484ab) Thanks [@allenzhou101](https://github.com/allenzhou101)! - Fix build error caused by invalid `shadcn/tailwind.css` import in globals.css. The import has been removed as all styles are already inlined in the file.
+
 ## 0.0.2
 
 ### Patch Changes
