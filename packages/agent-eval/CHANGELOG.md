@@ -1,5 +1,11 @@
 # @vercel/agent-eval
 
+## 0.0.12
+
+### Patch Changes
+
+- [#18](https://github.com/vercel-labs/agent-eval/pull/18) [`85bfb21`](https://github.com/vercel-labs/agent-eval/commit/85bfb21b5491d66de5905163250121854ef93504) Thanks [@paoloricciuti](https://github.com/paoloricciuti)! - feat: add `editPrompt` config to experiment
+
 ## 0.0.11
 
 ### Patch Changes
