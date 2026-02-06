@@ -4,6 +4,7 @@
 
 import { mkdirSync, writeFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
+import pkg from '../../package.json' with { type: 'json' };
 
 /**
  * Options for initializing a new project.
@@ -34,7 +35,7 @@ function getPackageJson(projectName: string): string {
       private: true,
       type: 'module',
       devDependencies: {
-        'agent-eval': '^0.0.1',
+        '@vercel/agent-eval': `^${pkg.version}`,
         '@types/node': '^22.0.0',
         typescript: '^5.6.0',
         vitest: '^2.1.0',

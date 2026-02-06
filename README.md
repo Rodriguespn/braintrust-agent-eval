@@ -16,15 +16,15 @@ You're building a frontend framework and want AI agents to work well with it. Bu
 
 ```bash
 # Create a new eval project
-npx @vercel/agent-eval init my-framework-evals
-cd my-framework-evals
+npx @vercel/agent-eval init my-agent-evals
+cd my-agent-evals
 
 # Install dependencies
 npm install
 
 # Add your API keys
-cp .env.example .env
-# Edit .env with your AI_GATEWAY_API_KEY and VERCEL_TOKEN
+cp .env.example .env.local
+# Edit .env.local with your AI_GATEWAY_API_KEY and VERCEL_TOKEN
 
 # Preview what will run (no API calls, no cost)
 npx @vercel/agent-eval cc --dry
