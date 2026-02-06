@@ -72,8 +72,8 @@ console.log(`  Port:    ${port}`);
 if (watch) console.log(`  Watch:   enabled`);
 console.log();
 
-// Run next dev from the package directory
-const child = spawn(process.execPath, [nextBin, "dev", "-p", port], {
+// Run next start (production mode) from the package directory
+const child = spawn(process.execPath, [nextBin, "start", "-p", port], {
   cwd: __dirname,
   stdio: "inherit",
   env: process.env,
