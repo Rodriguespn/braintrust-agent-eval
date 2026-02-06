@@ -3,6 +3,7 @@
  */
 
 import { z } from 'zod';
+import { minimatch } from 'minimatch';
 import type {
   ExperimentConfig,
   ResolvedExperimentConfig,
@@ -131,32 +132,11 @@ export async function loadConfig(configPath: string): Promise<ResolvedExperiment
  * - "vercel-cli/*" matches all under vercel-cli/
  * - "* /deploy" matches any deploy in any folder
  * - "vercel-cli/deploy" exact match
+ * 
+ * Uses minimatch for robust glob matching.
  */
 function matchesPattern(name: string, pattern: string): boolean {
-  if (pattern === '*') {
-    return true;
-  }
-
-  // Convert glob pattern to regex
-  // Escape special regex chars except * and /
-  const regexPattern = pattern
-    .replace(/\./g, '\\.')
-    .replace(/\+/g, '\\+')
-    .replace(/\?/g, '\\?')
-    .replace(/\^/g, '\\^')
-    .replace(/\$/g, '\\$')
-    .replace(/\{/g, '\\{')
-    .replace(/\}/g, '\\}')
-    .replace(/\(/g, '\\(')
-    .replace(/\)/g, '\\)')
-    .replace(/\|/g, '\\|')
-    .replace(/\[/g, '\\[')
-    .replace(/\]/g, '\\]')
-    .replace(/\\/g, '\\\\')
-    .replace(/\*/g, '.*');
-
-  const regex = new RegExp(`^${regexPattern}$`);
-  return regex.test(name);
+  return minimatch(name, pattern);
 }
 
 /**

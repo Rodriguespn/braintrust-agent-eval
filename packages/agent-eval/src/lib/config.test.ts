@@ -147,4 +147,34 @@ describe('resolveEvalNames', () => {
       'No evals matched pattern "nonexistent/*"'
     );
   });
+
+  it('handles special characters in eval names correctly', () => {
+    // Test that dots and parentheses work correctly with glob patterns
+    const specialCharsEvals = [
+      'test.eval',
+      'test-eval',
+      'vercel-cli/deploy.test',
+      'vercel-cli/deploy-test',
+      'folder(1)/eval',
+      'web-analytics/page-views',
+    ];
+
+    // Literal match - dot should match only dot, not any character
+    expect(resolveEvalNames('test.eval', specialCharsEvals)).toEqual(['test.eval']);
+    expect(resolveEvalNames('test.eval', specialCharsEvals)).not.toContain('test-eval');
+
+    // Glob pattern with dot - should match literal dot
+    expect(resolveEvalNames('vercel-cli/*.test', specialCharsEvals)).toEqual([
+      'vercel-cli/deploy.test',
+    ]);
+    expect(resolveEvalNames('vercel-cli/*.test', specialCharsEvals)).not.toContain(
+      'vercel-cli/deploy-test'
+    );
+
+    // Parentheses in eval names work with wildcards
+    expect(resolveEvalNames('folder(1)/*', specialCharsEvals)).toEqual(['folder(1)/eval']);
+    
+    // Wildcard patterns work correctly
+    expect(resolveEvalNames('web-analytics/*', specialCharsEvals)).toEqual(['web-analytics/page-views']);
+  });
 });
