@@ -150,10 +150,8 @@ async function runExperimentCommand(configInput: string, options: { dry?: boolea
       // Create a config for this specific model
       const modelConfig = { ...config, model };
 
-      // Include model in experiment name when multiple models are specified
-      const experimentName = models.length > 1
-        ? `${baseExperimentName}/${model}`
-        : baseExperimentName;
+      // Include model in experiment name for organized results
+      const experimentName = `${baseExperimentName}/${model}`;
 
       if (models.length > 1) {
         console.log(chalk.blue(`\n--- Running with model: ${model} ---`));
