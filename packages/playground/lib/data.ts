@@ -104,9 +104,32 @@ export function getExperimentDetail(name: string, timestamp: string) {
     return null;
   }
 
-  const evalDirs = readdirSync(runDir, { withFileTypes: true })
-    .filter((e) => e.isDirectory())
-    .map((e) => e.name);
+  // Recursively discover all eval result directories (directories with summary.json)
+  const evalDirs: string[] = [];
+  function walk(dir: string, basePath: string = "") {
+    const dirEntries = readdirSync(dir, { withFileTypes: true });
+
+    for (const entry of dirEntries) {
+      if (!entry.isDirectory() || entry.name.startsWith(".") || entry.name.startsWith("run-")) {
+        continue;
+      }
+
+      const relativePath = basePath ? `${basePath}/${entry.name}` : entry.name;
+      const entryPath = join(dir, entry.name);
+      const summaryPath = join(entryPath, "summary.json");
+
+      // Check if this is an eval result directory (has summary.json)
+      if (existsSync(summaryPath)) {
+        evalDirs.push(relativePath);
+      } else {
+        // Not an eval result, recurse into it
+        walk(entryPath, relativePath);
+      }
+    }
+  }
+
+  walk(runDir);
+  evalDirs.sort();
 
   const evals = evalDirs.map((evalName) => {
     const evalDir = join(runDir, evalName);
