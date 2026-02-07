@@ -1,5 +1,13 @@
 # @vercel/agent-eval-playground
 
+## 0.1.2
+
+### Patch Changes
+
+- [#36](https://github.com/vercel-labs/agent-eval/pull/36) [`621e989`](https://github.com/vercel-labs/agent-eval/commit/621e9893e5e6f6ea0bb454a914cf93f8c58bea42) Thanks [@allenzhou101](https://github.com/allenzhou101)! - Fix playground UI to correctly display nested eval results by recursively discovering eval directories instead of only checking immediate subdirectories
+
+- [#34](https://github.com/vercel-labs/agent-eval/pull/34) [`8d712a6`](https://github.com/vercel-labs/agent-eval/commit/8d712a63500c9560519f51093d19ce4f6e501ebe) Thanks [@paoloricciuti](https://github.com/paoloricciuti)! - fix: adapt to new result structure
+
 ## 0.1.1
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @vercel/agent-eval
 
+## 0.2.0
+
+### Minor Changes
+
+- [#34](https://github.com/vercel-labs/agent-eval/pull/34) [`01cff78`](https://github.com/vercel-labs/agent-eval/commit/01cff7846c7909d3fb38400b519a9a9968992294) Thanks [@paoloricciuti](https://github.com/paoloricciuti)! - fix: always add model name to experiment run
+
 ## 0.1.0
 
 ### Minor Changes
