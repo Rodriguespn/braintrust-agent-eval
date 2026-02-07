@@ -10,7 +10,7 @@ import type {
   EvalRunData,
   EvalSummary,
   ExperimentResults,
-  ResolvedExperimentConfig,
+  RunnableExperimentConfig,
 } from './types.js';
 import type { AgentRunResult } from './agents/types.js';
 import { parseTranscript, type Transcript } from './o11y/index.js';
@@ -70,7 +70,7 @@ export function createEvalSummary(name: string, runData: EvalRunData[]): EvalSum
  * Create experiment results from eval summaries.
  */
 export function createExperimentResults(
-  config: ResolvedExperimentConfig,
+  config: RunnableExperimentConfig,
   evals: EvalSummary[],
   startedAt: Date,
   completedAt: Date
@@ -142,17 +142,15 @@ export function saveResults(
       mkdirSync(runDir, { recursive: true });
 
       // Build the result with paths and o11y summary
+      const model = results.config.model;
       const resultWithPaths: EvalRunResult & { o11y?: Transcript['summary'] } = {
         ...runData.result,
+        model,
       };
 
       // Save transcripts if available
       if (runData.transcript) {
         // Parse the raw transcript
-        // Model can be string or array - use first if array
-        const model = Array.isArray(results.config.model)
-          ? results.config.model[0]
-          : results.config.model;
         const transcript = parseTranscript(
           runData.transcript,
           results.config.agent,

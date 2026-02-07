@@ -160,6 +160,8 @@ export interface EvalRunResult {
   error?: string;
   /** Duration in seconds */
   duration: number;
+  /** Model used for this run */
+  model?: string;
   /** Path to parsed transcript file (relative to run directory) */
   transcriptPath?: string;
   /** Path to raw transcript file (relative to run directory) */
@@ -217,7 +219,7 @@ export interface ExperimentResults {
   /** Timestamp when experiment completed */
   completedAt: string;
   /** Experiment configuration used */
-  config: ResolvedExperimentConfig;
+  config: RunnableExperimentConfig;
   /** Results for each eval */
   evals: EvalSummary[];
 }
