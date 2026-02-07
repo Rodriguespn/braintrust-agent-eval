@@ -29,7 +29,7 @@ const pkg = JSON.parse(readFileSync(resolve(__dirname, '../package.json'), 'utf-
 const program = new Command();
 
 program
-  .name('agent-eval')
+  .name('@vercel/agent-eval')
   .description('Framework for testing AI coding agents in isolated sandboxes')
   .version(pkg.version);
 

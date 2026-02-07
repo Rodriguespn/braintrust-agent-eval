@@ -41,7 +41,7 @@ The real power is comparing different approaches. Create multiple experiment con
 
 ```typescript
 // experiments/control.ts
-import type { ExperimentConfig } from 'agent-eval';
+import type { ExperimentConfig } from '@vercel/agent-eval';
 
 const config: ExperimentConfig = {
   agent: 'vercel-ai-gateway/claude-code',
@@ -57,7 +57,7 @@ export default config;
 
 ```typescript
 // experiments/with-mcp.ts
-import type { ExperimentConfig } from 'agent-eval';
+import type { ExperimentConfig } from '@vercel/agent-eval';
 
 const config: ExperimentConfig = {
   agent: 'vercel-ai-gateway/claude-code',
@@ -264,7 +264,7 @@ And runs: `opencode run "<prompt>" --model {provider}/{model} --format json`
 ### Full Configuration
 
 ```typescript
-import type { ExperimentConfig } from 'agent-eval';
+import type { ExperimentConfig } from '@vercel/agent-eval';
 
 const config: ExperimentConfig = {
   // Required: which agent and authentication to use
