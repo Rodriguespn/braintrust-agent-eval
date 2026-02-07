@@ -1,5 +1,30 @@
 # @vercel/agent-eval
 
+## 0.1.0
+
+### Minor Changes
+
+- [#30](https://github.com/vercel-labs/agent-eval/pull/30) [`a61c89e`](https://github.com/vercel-labs/agent-eval/commit/a61c89e371bb9b459e448360cd9c8572c37eecc4) Thanks [@allenzhou101](https://github.com/allenzhou101)! - Add support for nested eval directories. You can now organize evals into folders and use glob patterns to filter them:
+
+  ```
+  evals/
+    vercel-cli/
+      deploy/
+      link/
+    flags/
+      create/
+      update/
+  ```
+
+  Filter examples in experiment config:
+
+  - `evals: 'vercel-cli/*'` - Run all vercel-cli evals
+  - `evals: ['vercel-cli/*', 'flags/*']` - Run multiple categories
+  - `evals: '*/deploy'` - Run all deploy evals across folders
+  - `evals: 'vercel-cli/deploy'` - Run specific nested eval
+
+  Results automatically maintain the hierarchy (e.g., `results/experiment/.../vercel-cli/deploy/`).
+
 ## 0.0.15
 
 ### Patch Changes
