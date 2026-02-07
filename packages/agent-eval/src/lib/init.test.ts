@@ -139,7 +139,7 @@ describe('init utilities', () => {
       // This allows the test to work before publishing
       const pkgPath = join(projectDir, 'package.json');
       const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
-      pkg.devDependencies['agent-eval'] = `file:${PROJECT_ROOT}`;
+      pkg.devDependencies['@vercel/agent-eval'] = `file:${PROJECT_ROOT}`;
       writeFileSync(pkgPath, JSON.stringify(pkg, null, 2));
 
       // Install dependencies
