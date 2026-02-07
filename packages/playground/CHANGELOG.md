@@ -1,5 +1,11 @@
 # @vercel/agent-eval-playground
 
+## 0.1.1
+
+### Patch Changes
+
+- [`08499ab`](https://github.com/vercel-labs/agent-eval/commit/08499abc1b4670f2a25a15e99d995ab2600acb8b) Thanks [@allenzhou101](https://github.com/allenzhou101)! - Move TypeScript from devDependencies to dependencies to fix "Cannot find module 'typescript'" error when running via npx.
+
 ## 0.1.0
 
 ### Minor Changes

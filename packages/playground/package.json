@@ -1,6 +1,6 @@
 {
   "name": "@vercel/agent-eval-playground",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Web-based playground for browsing agent-eval experiment results",
   "repository": {
     "type": "git",
