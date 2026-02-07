@@ -35,7 +35,8 @@ function existsWithExactCase(dirPath: string, fileName: string): boolean {
 
 /**
  * Discovers all eval fixtures in a directory.
- * Each subdirectory is considered a potential eval fixture.
+ * Recursively searches for directories containing PROMPT.md.
+ * Supports nested organization like "vercel-cli/deploy" or "flags/create-flag".
  */
 export function discoverFixtures(evalsDir: string): string[] {
   const absolutePath = resolve(evalsDir);
@@ -44,23 +45,37 @@ export function discoverFixtures(evalsDir: string): string[] {
     throw new Error(`Evals directory not found: ${absolutePath}`);
   }
 
-  const entries = readdirSync(absolutePath);
   const fixtures: string[] = [];
 
-  for (const entry of entries) {
-    const entryPath = join(absolutePath, entry);
+  function walk(dir: string, basePath: string = '') {
+    const entries = readdirSync(dir);
 
-    // Skip hidden directories and files
-    if (entry.startsWith('.')) {
-      continue;
-    }
+    for (const entry of entries) {
+      // Skip hidden directories and files
+      if (entry.startsWith('.')) {
+        continue;
+      }
 
-    // Only consider directories
-    if (statSync(entryPath).isDirectory()) {
-      fixtures.push(entry);
+      const entryPath = join(dir, entry);
+      
+      // Only consider directories
+      if (!statSync(entryPath).isDirectory()) {
+        continue;
+      }
+
+      const relativePath = basePath ? `${basePath}/${entry}` : entry;
+
+      // Check if this directory contains PROMPT.md (potential fixture)
+      if (existsWithExactCase(entryPath, 'PROMPT.md')) {
+        fixtures.push(relativePath);
+      } else {
+        // Not a fixture directory, recurse into it
+        walk(entryPath, relativePath);
+      }
     }
   }
 
+  walk(absolutePath);
   return fixtures.sort();
 }
 

@@ -40,12 +40,22 @@ describe('fixture discovery and validation', () => {
 
   describe('discoverFixtures', () => {
     it('discovers and sorts fixture directories', () => {
-      createTestFixture('z-eval', { 'README.md': '# Test' });
-      createTestFixture('a-eval', { 'README.md': '# Test' });
-      createTestFixture('.hidden', { 'README.md': '# Test' });
+      createTestFixture('z-eval', { 'PROMPT.md': '# Test', 'README.md': '# Test' });
+      createTestFixture('a-eval', { 'PROMPT.md': '# Test', 'README.md': '# Test' });
+      createTestFixture('.hidden', { 'PROMPT.md': '# Test', 'README.md': '# Test' });
 
       const fixtures = discoverFixtures(TEST_DIR);
       expect(fixtures).toEqual(['a-eval', 'z-eval']);
+    });
+
+    it('discovers nested fixture directories', () => {
+      createTestFixture('vercel-cli/deploy', { 'PROMPT.md': '# Deploy test' });
+      createTestFixture('vercel-cli/link', { 'PROMPT.md': '# Link test' });
+      createTestFixture('flags/create', { 'PROMPT.md': '# Create flag test' });
+      createTestFixture('simple', { 'PROMPT.md': '# Simple test' });
+
+      const fixtures = discoverFixtures(TEST_DIR);
+      expect(fixtures).toEqual(['flags/create', 'simple', 'vercel-cli/deploy', 'vercel-cli/link']);
     });
 
     it('throws if directory does not exist', () => {

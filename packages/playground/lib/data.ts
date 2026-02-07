@@ -224,9 +224,32 @@ export function listEvals(limit?: number) {
     return { items: [], total: 0 };
   }
 
-  const entries = readdirSync(evalsDir, { withFileTypes: true })
-    .filter((e) => e.isDirectory())
-    .map((e) => e.name);
+  // Recursively discover all evals (directories with PROMPT.md)
+  const entries: string[] = [];
+  function walk(dir: string, basePath: string = "") {
+    const dirEntries = readdirSync(dir, { withFileTypes: true });
+
+    for (const entry of dirEntries) {
+      if (!entry.isDirectory() || entry.name.startsWith(".")) {
+        continue;
+      }
+
+      const relativePath = basePath ? `${basePath}/${entry.name}` : entry.name;
+      const entryPath = join(dir, entry.name);
+      const promptPath = join(entryPath, "PROMPT.md");
+
+      // Check if this is an eval directory (has PROMPT.md)
+      if (existsSync(promptPath)) {
+        entries.push(relativePath);
+      } else {
+        // Not an eval, recurse into it
+        walk(entryPath, relativePath);
+      }
+    }
+  }
+
+  walk(evalsDir);
+  entries.sort();
 
   const total = entries.length;
   const toProcess = limit ? entries.slice(0, limit) : entries;

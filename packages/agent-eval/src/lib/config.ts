@@ -3,6 +3,7 @@
  */
 
 import { z } from 'zod';
+import { minimatch } from 'minimatch';
 import type {
   ExperimentConfig,
   ResolvedExperimentConfig,
@@ -125,32 +126,80 @@ export async function loadConfig(configPath: string): Promise<ResolvedExperiment
 }
 
 /**
+ * Check if a name matches a glob-style pattern.
+ * Supports:
+ * - "*" matches everything
+ * - "vercel-cli/*" matches all under vercel-cli/
+ * - "* /deploy" matches any deploy in any folder
+ * - "vercel-cli/deploy" exact match
+ * 
+ * Uses minimatch for robust glob matching.
+ */
+function matchesPattern(name: string, pattern: string): boolean {
+  return minimatch(name, pattern);
+}
+
+/**
  * Resolves the evals filter to a list of eval names.
+ * Supports glob patterns like "vercel-cli/*" for nested directories.
  */
 export function resolveEvalNames(
   filter: string | string[] | EvalFilter,
   availableEvals: string[]
 ): string[] {
-  // Single eval name
+  // Single eval name or pattern
   if (typeof filter === 'string') {
     if (filter === '*') {
       return availableEvals;
     }
+
+    // Check if it's a glob pattern
+    if (filter.includes('*')) {
+      const matched = availableEvals.filter((name) => matchesPattern(name, filter));
+      if (matched.length === 0) {
+        throw new Error(`No evals matched pattern "${filter}". Available evals: ${availableEvals.join(', ')}`);
+      }
+      return matched;
+    }
+
+    // Exact match
     if (!availableEvals.includes(filter)) {
       throw new Error(`Eval "${filter}" not found. Available evals: ${availableEvals.join(', ')}`);
     }
     return [filter];
   }
 
-  // Array of eval names
+  // Array of eval names or patterns
   if (Array.isArray(filter)) {
-    const missing = filter.filter((name) => !availableEvals.includes(name));
-    if (missing.length > 0) {
-      throw new Error(
-        `Evals not found: ${missing.join(', ')}. Available evals: ${availableEvals.join(', ')}`
-      );
+    const result: string[] = [];
+    const seen = new Set<string>();
+
+    for (const item of filter) {
+      // Handle glob patterns in arrays
+      if (item.includes('*')) {
+        const matched = availableEvals.filter((name) => matchesPattern(name, item));
+        if (matched.length === 0) {
+          throw new Error(`No evals matched pattern "${item}". Available evals: ${availableEvals.join(', ')}`);
+        }
+        for (const name of matched) {
+          if (!seen.has(name)) {
+            result.push(name);
+            seen.add(name);
+          }
+        }
+      } else {
+        // Exact match
+        if (!availableEvals.includes(item)) {
+          throw new Error(`Eval "${item}" not found. Available evals: ${availableEvals.join(', ')}`);
+        }
+        if (!seen.has(item)) {
+          result.push(item);
+          seen.add(item);
+        }
+      }
     }
-    return filter;
+
+    return result;
   }
 
   // Filter function
