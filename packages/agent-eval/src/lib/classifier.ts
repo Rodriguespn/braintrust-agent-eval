@@ -198,7 +198,7 @@ export async function classifyWithAI(
 ): Promise<Classification | null> {
   const { generateText, hasToolCall, createGateway } = await import('ai');
 
-  const gateway = createGateway({ apiKey: process.env.AI_GATEWAY_API_KEY ?? '' });
+  const gateway = createGateway({ apiKey: process.env.AI_GATEWAY_API_KEY ?? process.env.VERCEL_OIDC_TOKEN ?? '' });
 
   let classification: Classification | null = null;
 
