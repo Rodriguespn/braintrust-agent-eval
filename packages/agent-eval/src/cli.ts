@@ -141,9 +141,9 @@ async function runExperimentCommand(configInput: string, options: { dry?: boolea
     // Get the agent to check for required API key
     const agent = getAgent(config.agent);
     const apiKeyEnvVar = agent.getApiKeyEnvVar();
-    const apiKey = process.env[apiKeyEnvVar];
+    const apiKey = process.env[apiKeyEnvVar] ?? process.env.VERCEL_OIDC_TOKEN;
     if (!apiKey) {
-      console.error(chalk.red(`${apiKeyEnvVar} environment variable is required`));
+      console.error(chalk.red(`${apiKeyEnvVar} (or VERCEL_OIDC_TOKEN) environment variable is required`));
       console.error(chalk.gray(`Get your API key at: https://vercel.com/dashboard -> AI Gateway`));
       process.exit(1);
     }
@@ -357,9 +357,9 @@ async function runAllCommand(experimentArgs: string[], options: { dry?: boolean;
 
         const agent = getAgent(config.agent);
         const apiKeyEnvVar = agent.getApiKeyEnvVar();
-        const apiKey = process.env[apiKeyEnvVar];
+        const apiKey = process.env[apiKeyEnvVar] ?? process.env.VERCEL_OIDC_TOKEN;
         if (!apiKey && !options.dry) {
-          console.error(chalk.red(`${apiKeyEnvVar} not set, skipping ${baseExperimentName}`));
+          console.error(chalk.red(`${apiKeyEnvVar} (or VERCEL_OIDC_TOKEN) not set, skipping ${baseExperimentName}`));
           return;
         }
 
