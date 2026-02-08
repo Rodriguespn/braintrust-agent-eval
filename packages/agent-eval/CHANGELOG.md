@@ -1,5 +1,11 @@
 # @vercel/agent-eval
 
+## 0.3.2
+
+### Patch Changes
+
+- [#49](https://github.com/vercel-labs/agent-eval/pull/49) [`465fbac`](https://github.com/vercel-labs/agent-eval/commit/465fbac30bb55f01089d977463a74a6dcbea3e63) Thanks [@paoloricciuti](https://github.com/paoloricciuti)! - fix: allow `VERCEL_OIDC_TOKEN` if `AI_GATEWAY_API_KEY` is not set
+
 ## 0.3.1
 
 ### Patch Changes
