@@ -85,15 +85,20 @@ export function O11ySummary({ summary }: O11ySummaryProps) {
         <div className="space-y-1 text-xs">
           <span className="text-muted-foreground">Shell ({summary.shellCommands.length})</span>
           <div className="flex flex-wrap gap-1">
-            {summary.shellCommands.slice(0, 10).map((cmd, i) => (
-              <Badge
-                key={i}
-                variant={cmd.exitCode === 0 ? "outline" : "destructive"}
-                className="text-xs font-mono font-normal max-w-64 truncate"
-              >
-                {cmd.command}
-              </Badge>
-            ))}
+            {summary.shellCommands.slice(0, 10).map((cmd, i) => {
+              // Check success field first, then exitCode if available
+              const isSuccess = cmd.success ?? (cmd.exitCode === 0);
+              return (
+                <Badge
+                  key={i}
+                  variant={isSuccess ? "outline" : "destructive"}
+                  className="text-xs font-mono font-normal max-w-64 truncate"
+                  title={cmd.exitCode !== undefined ? `Exit code: ${cmd.exitCode}` : undefined}
+                >
+                  {cmd.command}
+                </Badge>
+              );
+            })}
           </div>
         </div>
       )}

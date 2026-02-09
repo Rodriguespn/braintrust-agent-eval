@@ -127,6 +127,14 @@ function parseOpenCodeLine(line: string): TranscriptEvent[] {
 
           // If completed, also emit tool_result
           if (status === 'completed' && output !== undefined) {
+            const metadata = state?.metadata as Record<string, unknown> | undefined;
+            const exitCode = metadata?.exit as number | undefined;
+            // For shell commands, check exit code; for others, check status and error
+            const isShellCommand = name === 'bash' || name === 'shell' || name === 'exec';
+            const success = isShellCommand
+              ? (exitCode === 0 || exitCode === undefined)
+              : (status === 'completed' && !state?.error);
+
             events.push({
               timestamp: data.timestamp ? new Date(data.timestamp).toISOString() : undefined,
               type: 'tool_result',
@@ -134,7 +142,7 @@ function parseOpenCodeLine(line: string): TranscriptEvent[] {
                 name: normalizeToolName(name),
                 originalName: name,
                 result: output,
-                success: status === 'completed' && !state?.error,
+                success,
               },
               raw: state,
             });
