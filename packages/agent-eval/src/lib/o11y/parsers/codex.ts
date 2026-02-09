@@ -220,6 +220,77 @@ function parseCodexLine(line: string): TranscriptEvent[] {
         break;
       }
 
+      // Codex item events (item.started, item.completed)
+      case 'item.started':
+      case 'item.completed': {
+        const item = data.item;
+        if (!item) break;
+
+        const itemType = item.type;
+
+        switch (itemType) {
+          case 'reasoning': {
+            // Reasoning is thinking
+            events.push({
+              timestamp: data.timestamp || data.ts,
+              type: 'thinking',
+              content: item.text || item.content,
+              raw: data,
+            });
+            break;
+          }
+
+          case 'command_execution': {
+            // Command execution is a shell tool call/result
+            if (eventType === 'item.started') {
+              events.push({
+                timestamp: data.timestamp || data.ts,
+                type: 'tool_call',
+                tool: {
+                  name: 'shell',
+                  originalName: 'command_execution',
+                  args: {
+                    command: item.command,
+                    _extractedCommand: item.command,
+                  },
+                },
+                raw: data,
+              });
+            } else {
+              // item.completed
+              events.push({
+                timestamp: data.timestamp || data.ts,
+                type: 'tool_result',
+                tool: {
+                  name: 'shell',
+                  originalName: 'command_execution',
+                  result: {
+                    output: item.aggregated_output || item.output,
+                    exitCode: item.exit_code,
+                  },
+                  success: item.status === 'completed' || item.exit_code === 0,
+                },
+                raw: data,
+              });
+            }
+            break;
+          }
+
+          case 'agent_message': {
+            // Agent message is an assistant message
+            events.push({
+              timestamp: data.timestamp || data.ts,
+              type: 'message',
+              role: 'assistant',
+              content: item.text || item.content || item.message,
+              raw: data,
+            });
+            break;
+          }
+        }
+        break;
+      }
+
       default: {
         // Try to infer from structure
         if (data.role === 'assistant' || data.role === 'user') {
