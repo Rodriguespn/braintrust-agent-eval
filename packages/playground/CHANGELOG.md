@@ -1,5 +1,15 @@
 # @vercel/agent-eval-playground
 
+## 0.1.3
+
+### Patch Changes
+
+- [#58](https://github.com/vercel-labs/agent-eval/pull/58) [`e42dbf7`](https://github.com/vercel-labs/agent-eval/commit/e42dbf7d4c285bfc1799ac173a1e9f65b9e15169) Thanks [@allenzhou101](https://github.com/allenzhou101)! - Fix shell command success/failure display
+
+  - Updated shell command badges to check `success` field first, then fall back to `exitCode === 0`
+  - Added tooltip showing exit code on hover
+  - Commands with non-zero exit codes now correctly display in red (destructive variant)
+
 ## 0.1.2
 
 ### Patch Changes
