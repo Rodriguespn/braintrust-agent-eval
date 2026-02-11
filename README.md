@@ -357,12 +357,6 @@ const config: ExperimentConfig = {
 - **`changed`** — Copy only files that were modified, created, or deleted by the agent
 - **`all`** — Copy the complete project including both the original fixture files and agent changes
 
-**When to use:**
-
-- Use `'changed'` when building skills or MCPs to see exactly what the agent modified
-- Use `'all'` to get the full working project for manual inspection or debugging
-- Use `'none'` (default) to minimize disk usage when you only need test results
-
 Files are saved to `results/<experiment>/<timestamp>/<eval>/run-N/project/`. The framework uses git to track changes, so files must be text-based to be captured.
 
 ## Result Reuse
