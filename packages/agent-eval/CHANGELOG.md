@@ -1,5 +1,11 @@
 # @vercel/agent-eval
 
+## 0.7.1
+
+### Patch Changes
+
+- [#75](https://github.com/vercel-labs/agent-eval/pull/75) [`9558ee9`](https://github.com/vercel-labs/agent-eval/commit/9558ee90b9bfd11f347977be249367f30527e631) Thanks [@gaojude](https://github.com/gaojude)! - Remove debug console.log from saveResults function
+
 ## 0.7.0
 
 ### Minor Changes
