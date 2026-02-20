@@ -1,5 +1,11 @@
 # @vercel/agent-eval
 
+## 0.9.0
+
+### Minor Changes
+
+- [#85](https://github.com/vercel-labs/agent-eval/pull/85) [`0974903`](https://github.com/vercel-labs/agent-eval/commit/097490384cf6ae71cd5c18ce0a9b852c9648e2a3) Thanks [@allenzhou101](https://github.com/allenzhou101)! - Inject transcript context into the sandbox before EVAL.ts runs. After the agent completes, the parsed transcript summary is written to `__agent_eval__/results.json` so tests can assert on agent behavior — shell commands executed, files modified, tool call counts, and more.
+
 ## 0.8.0
 
 ### Minor Changes
