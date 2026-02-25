@@ -1,5 +1,11 @@
 # @vercel/agent-eval
 
+## 0.9.1
+
+### Patch Changes
+
+- [`eb0eea9`](https://github.com/vercel-labs/agent-eval/commit/eb0eea919a89cbe8a0171ad56e9f135e944e42cc) Thanks [@allenzhou101](https://github.com/allenzhou101)! - Wire Vercel Sandbox auth to use `VERCEL_TOKEN`, `VERCEL_TEAM_ID`, and `VERCEL_PROJECT_ID` from env vars when all are present, so CI can authenticate with access tokens instead of requiring OIDC context.
+
 ## 0.9.0
 
 ### Minor Changes
