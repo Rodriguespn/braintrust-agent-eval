@@ -1,5 +1,11 @@
 # @vercel/agent-eval
 
+## 0.9.2
+
+### Patch Changes
+
+- [`5aa83e4`](https://github.com/vercel-labs/agent-eval/commit/5aa83e4efd10826e85959e0f565042e4fe96a2c2) Thanks [@allenzhou101](https://github.com/allenzhou101)! - Capture transcripts on a best-effort basis for failed and aborted runs (not just successful runs) across supported agents, so result folders can include transcripts when available for downstream ingestion and debugging.
+
 ## 0.9.1
 
 ### Patch Changes
