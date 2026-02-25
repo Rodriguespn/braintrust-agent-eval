@@ -67,6 +67,12 @@ export interface SandboxOptions {
   runtime?: 'node20' | 'node24';
   /** Sandbox backend to use. 'auto' will use Vercel if token present, else Docker. @default 'auto' */
   backend?: SandboxBackend | 'auto';
+  /** Optional explicit Vercel auth token for sandbox API auth */
+  token?: string;
+  /** Optional explicit Vercel team ID for sandbox API auth */
+  teamId?: string;
+  /** Optional explicit Vercel project ID for sandbox API auth */
+  projectId?: string;
 }
 
 /**
@@ -103,8 +109,13 @@ export class SandboxManager implements Sandbox {
   static async create(options: SandboxOptions = {}): Promise<SandboxManager> {
     const timeout = options.timeout ?? DEFAULT_SANDBOX_TIMEOUT;
     const runtime = options.runtime ?? 'node24';
+    const credentials = resolveVercelSandboxCredentials(options);
 
-    const sandbox = await VercelSandbox.create({ runtime, timeout });
+    const sandbox = await VercelSandbox.create({
+      runtime,
+      timeout,
+      ...(credentials ?? {}),
+    });
     return new SandboxManager(sandbox);
   }
 
@@ -213,6 +224,22 @@ export class SandboxManager implements Sandbox {
   async stop(): Promise<void> {
     await this.sandbox.stop();
   }
+}
+
+function resolveVercelSandboxCredentials(options: SandboxOptions): {
+  token: string;
+  teamId: string;
+  projectId: string;
+} | null {
+  const token = options.token ?? process.env.VERCEL_TOKEN;
+  const teamId = options.teamId ?? process.env.VERCEL_TEAM_ID;
+  const projectId = options.projectId ?? process.env.VERCEL_PROJECT_ID;
+
+  if (token && teamId && projectId) {
+    return { token, teamId, projectId };
+  }
+
+  return null;
 }
 
 /**
