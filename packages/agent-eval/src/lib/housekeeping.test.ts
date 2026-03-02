@@ -33,7 +33,7 @@ describe('housekeep', () => {
   beforeEach(() => {
     mkdirSync(TEST_DIR, { recursive: true });
     // Enable classifier for tests that expect non-model failures to be cleaned up
-    process.env.AI_GATEWAY_API_KEY = 'test-key';
+    process.env.ANTHROPIC_API_KEY = 'test-key';
   });
 
   afterEach(() => {
@@ -41,7 +41,7 @@ describe('housekeep', () => {
       rmSync(TEST_DIR, { recursive: true });
     }
     // Clean up env var
-    delete process.env.AI_GATEWAY_API_KEY;
+    delete process.env.ANTHROPIC_API_KEY;
   });
 
   it('keeps newest result and removes older duplicate', () => {
@@ -163,7 +163,7 @@ describe('housekeep', () => {
     );
 
     // Disable classifier by removing env var
-    delete process.env.AI_GATEWAY_API_KEY;
+    delete process.env.ANTHROPIC_API_KEY;
 
     const stats = housekeep(TEST_DIR, 'exp');
 

@@ -1,10 +1,10 @@
 {
-  "name": "@vercel/agent-eval",
+  "name": "@supabase/agent-evals",
   "version": "0.9.2",
   "description": "Framework for testing AI coding agents in isolated sandboxes",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vercel-labs/agent-eval.git"
+    "url": "git+https://github.com/supabase/agent-evals.git"
   },
   "type": "module",
   "main": "dist/index.js",
@@ -22,14 +22,12 @@
     "test:docker": "SANDBOX_BACKEND=docker vitest run src/lib/docker-sandbox.test.ts",
     "test:integration": "INTEGRATION_TEST=1 vitest run src/integration.test.ts",
     "test:integration:docker": "SANDBOX_BACKEND=docker INTEGRATION_TEST=1 vitest run src/integration.test.ts",
-    "test:integration:vercel": "SANDBOX_BACKEND=vercel INTEGRATION_TEST=1 vitest run src/integration.test.ts",
     "lint": "eslint src/",
     "release": "changeset publish",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^1.2.12",
-    "@vercel/sandbox": "^1.2.0",
+    "@ai-sdk/anthropic": "^2.0.0",
     "ai": "^5.0.11",
     "chalk": "^5.3.0",
     "commander": "^12.1.0",

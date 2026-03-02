@@ -207,39 +207,8 @@ export async function injectTranscriptContext(
 }
 
 /**
- * AI Gateway configuration.
- */
-export const AI_GATEWAY = {
-  baseUrl: 'https://ai-gateway.vercel.sh',
-  openAiBaseUrl: 'https://ai-gateway.vercel.sh/v1',
-  apiKeyEnvVar: 'AI_GATEWAY_API_KEY',
-} as const;
-
-/**
  * Direct API configuration for Anthropic.
  */
 export const ANTHROPIC_DIRECT = {
   apiKeyEnvVar: 'ANTHROPIC_API_KEY',
-} as const;
-
-/**
- * Direct API configuration for OpenAI.
- */
-export const OPENAI_DIRECT = {
-  baseUrl: 'https://api.openai.com/v1',
-  apiKeyEnvVar: 'OPENAI_API_KEY',
-} as const;
-
-/**
- * Direct API configuration for Google Gemini.
- */
-export const GEMINI_DIRECT = {
-  apiKeyEnvVar: 'GEMINI_API_KEY',
-} as const;
-
-/**
- * Direct API configuration for Cursor.
- */
-export const CURSOR_DIRECT = {
-  apiKeyEnvVar: 'CURSOR_API_KEY',
 } as const;

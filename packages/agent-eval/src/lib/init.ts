@@ -35,7 +35,7 @@ function getPackageJson(projectName: string): string {
       private: true,
       type: 'module',
       devDependencies: {
-        '@vercel/agent-eval': `^${pkg.version}`,
+        '@supabase/agent-evals': `^${pkg.version}`,
         '@types/node': '^22.0.0',
         typescript: '^5.6.0',
         vitest: '^2.1.0',
@@ -50,29 +50,8 @@ function getPackageJson(projectName: string): string {
  * Get the .env.example template.
  */
 function getEnvExample(): string {
-  return `# API Keys (choose one based on your agent)
-# For vercel-ai-gateway agents or to enable failure classification:
-AI_GATEWAY_API_KEY=your-ai-gateway-api-key
-
-# For direct Claude Code API:
-# ANTHROPIC_API_KEY=sk-ant-...
-
-# For direct OpenAI Codex API:
-# OPENAI_API_KEY=sk-proj-...
-
-# Sandbox access - Required (choose ONE of the options below)
-# The @vercel/sandbox package automatically detects either token.
-
-# Option 1: Vercel Token (for local development)
-# Create at: https://vercel.com/account/tokens
-VERCEL_TOKEN=your-vercel-token
-
-# Option 2: OIDC Token (for CI/CD pipelines like GitHub Actions)
-# Automatically provided by Vercel's CI integration
-# VERCEL_OIDC_TOKEN=your-oidc-token
-
-# Alternative: Use Docker instead of Vercel sandbox (no token needed)
-# Set sandbox: 'docker' in your experiment config
+  return `# Anthropic API key - required for Claude Code and failure classification
+ANTHROPIC_API_KEY=sk-ant-...
 `;
 }
 
@@ -96,7 +75,7 @@ results/
 function getReadme(): string {
   return `# Agent Evaluation Suite
 
-Test AI coding agents to measure what actually works.
+Test Claude Code to measure what actually works.
 
 ## Setup
 
@@ -110,9 +89,7 @@ Test AI coding agents to measure what actually works.
    cp .env.example .env.local
    \`\`\`
 
-   Edit \`.env.local\` and add your API keys (see comments in \`.env.example\` for options):
-   - **Choose ONE agent key**: \`AI_GATEWAY_API_KEY\` (for Vercel agents), \`ANTHROPIC_API_KEY\`, or \`OPENAI_API_KEY\`
-   - **Choose ONE sandbox option**: \`VERCEL_TOKEN\`, \`VERCEL_OIDC_TOKEN\`, or use Docker (set \`sandbox: 'docker'\` in config)
+   Edit \`.env.local\` and add your \`ANTHROPIC_API_KEY\`.
 
 ## Running Evals
 
@@ -121,7 +98,7 @@ Test AI coding agents to measure what actually works.
 See what will run without making API calls:
 
 \`\`\`bash
-npx @vercel/agent-eval cc --dry
+npx @supabase/agent-evals cc --dry
 \`\`\`
 
 ### Run Experiments
@@ -129,13 +106,7 @@ npx @vercel/agent-eval cc --dry
 Run the Claude Code experiment:
 
 \`\`\`bash
-npx @vercel/agent-eval cc
-\`\`\`
-
-Run the Codex experiment:
-
-\`\`\`bash
-npx @vercel/agent-eval codex
+npx @supabase/agent-evals cc
 \`\`\`
 
 ### View Results
@@ -143,7 +114,7 @@ npx @vercel/agent-eval codex
 Launch the web-based results viewer:
 
 \`\`\`bash
-npx @vercel/agent-eval playground
+npx @supabase/agent-evals playground
 \`\`\`
 
 Open [http://localhost:3000](http://localhost:3000) to browse results.
@@ -155,28 +126,10 @@ Open [http://localhost:3000](http://localhost:3000) to browse results.
  * Get the default experiment configuration template (Claude Code).
  */
 function getCCExperiment(): string {
-  return `import type { ExperimentConfig } from '@vercel/agent-eval';
+  return `import type { ExperimentConfig } from '@supabase/agent-evals';
 
 const config: ExperimentConfig = {
-  agent: 'vercel-ai-gateway/claude-code',
-  runs: 1,
-  earlyExit: true,
-  scripts: ['build'],
-  timeout: 600,
-};
-
-export default config;
-`;
-}
-
-/**
- * Get the Codex experiment configuration template.
- */
-function getCodexExperiment(): string {
-  return `import type { ExperimentConfig } from '@vercel/agent-eval';
-
-const config: ExperimentConfig = {
-  agent: 'vercel-ai-gateway/codex',
+  agent: 'claude-code',
   runs: 1,
   earlyExit: true,
   scripts: ['build'],
@@ -317,7 +270,6 @@ function getTemplateFiles(projectName: string): TemplateFile[] {
     { path: '.gitignore', content: getGitignore() },
     { path: 'README.md', content: getReadme() },
     { path: 'experiments/cc.ts', content: getCCExperiment() },
-    { path: 'experiments/codex.ts', content: getCodexExperiment() },
     { path: 'evals/add-greeting/PROMPT.md', content: getExamplePrompt() },
     { path: 'evals/add-greeting/EVAL.ts', content: getExampleEval() },
     { path: 'evals/add-greeting/package.json', content: getExamplePackageJson() },
@@ -371,6 +323,6 @@ Next steps:
   4. npx agent-eval
 
 For more information, see the documentation at:
-  https://github.com/vercel-labs/agent-eval
+  https://github.com/supabase/agent-evals
 `;
 }

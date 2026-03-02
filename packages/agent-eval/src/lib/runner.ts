@@ -358,7 +358,7 @@ export async function runSingleEval<T extends ResolvedExperimentConfig['model']>
     verbose?: boolean;
   }
 ): Promise<T extends Array<unknown> ? EvalRunData[] : EvalRunData> {
-  const agent = getAgent(options.agent ?? 'vercel-ai-gateway/claude-code');
+  const agent = getAgent(options.agent ?? 'claude-code');
 
   const models: string[] = Array.isArray(options.model) ? options.model : [options.model];
   const prompt = options.editPrompt ? options.editPrompt(fixture.prompt) : fixture.prompt;

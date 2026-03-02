@@ -12,32 +12,17 @@ import type {
   ShellCommandInfo,
 } from '../types.js';
 import { parseClaudeCodeTranscript } from './claude-code.js';
-import { parseCodexTranscript } from './codex.js';
-import { parseOpenCodeTranscript } from './opencode.js';
-import { parseGeminiTranscript } from './gemini.js';
-import { parseCursorTranscript } from './cursor.js';
 
 /**
  * Supported agent types for parsing.
  */
-export type ParseableAgent =
-  | 'vercel-ai-gateway/claude-code'
-  | 'claude-code'
-  | 'vercel-ai-gateway/codex'
-  | 'codex'
-  | 'vercel-ai-gateway/opencode'
-  | 'gemini'
-  | 'cursor';
+export type ParseableAgent = 'claude-code';
 
 /**
  * Parser registry mapping agent key patterns to their parsers.
  */
 const AGENT_PARSERS = {
   'claude-code': parseClaudeCodeTranscript,
-  'codex': parseCodexTranscript,
-  'opencode': parseOpenCodeTranscript,
-  'gemini': parseGeminiTranscript,
-  'cursor': parseCursorTranscript,
 } as const;
 
 /**
@@ -229,7 +214,7 @@ export function parseTranscript(
   }
 
   const parser = getParserForAgent(agent);
-  
+
   // No parser available for this agent
   if (!parser) {
     return {
@@ -263,7 +248,7 @@ export function parseTranscript(
       parseErrors: [`No parser available for agent: ${agent}. Supported agents: ${SUPPORTED_AGENTS.join(', ')}`],
     };
   }
-  
+
   const { events, errors } = parser(raw);
   const summary = generateSummary(events);
 
@@ -305,10 +290,10 @@ function isTranscript(obj: unknown): obj is Transcript {
 
 /**
  * Load a transcript from a string, handling both raw and parsed formats.
- * 
+ *
  * - If the input is already a parsed transcript (JSON), returns it directly
  * - If the input is raw JSONL from an agent, parses it
- * 
+ *
  * @param content - The transcript content (raw JSONL or parsed JSON)
  * @param agent - The agent type (required for raw transcripts, optional for parsed)
  * @param model - Optional model name
@@ -320,7 +305,7 @@ export function loadTranscript(
   model?: string
 ): Transcript {
   const trimmed = content.trim();
-  
+
   // Try to detect if it's already a parsed transcript (single JSON object)
   // Parsed transcripts start with { and are valid JSON with our structure
   if (trimmed.startsWith('{') && !trimmed.includes('\n{')) {
@@ -333,7 +318,7 @@ export function loadTranscript(
       // Not valid JSON, treat as raw transcript
     }
   }
-  
+
   // It's a raw transcript - agent is required
   if (!agent) {
     throw new Error(
@@ -341,6 +326,6 @@ export function loadTranscript(
       'Provide the agent parameter or use an already-parsed transcript.'
     );
   }
-  
+
   return parseTranscript(content, agent, model);
 }

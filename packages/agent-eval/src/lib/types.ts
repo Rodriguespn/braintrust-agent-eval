@@ -5,14 +5,7 @@
 /**
  * Supported AI agent types.
  */
-export type AgentType =
-  | 'vercel-ai-gateway/claude-code'
-  | 'claude-code'
-  | 'vercel-ai-gateway/codex'
-  | 'codex'
-  | 'vercel-ai-gateway/opencode'
-  | 'gemini'
-  | 'cursor';
+export type AgentType = 'claude-code';
 
 /**
  * Model identifier - any string accepted.
@@ -53,7 +46,7 @@ export type SetupFunction = (sandbox: Sandbox) => Promise<void>;
 /**
  * Sandbox backend type.
  */
-export type SandboxBackend = 'vercel' | 'docker';
+export type SandboxBackend = 'docker';
 
 /**
  * Experiment configuration.
@@ -86,8 +79,8 @@ export interface ExperimentConfig {
   /** Setup function that runs before agent starts. @default undefined */
   setup?: SetupFunction;
 
-  /** Sandbox backend to use. @default 'auto' (Vercel if token present, else Docker) */
-  sandbox?: SandboxBackend | 'auto';
+  /** Sandbox backend to use. @default 'docker' */
+  sandbox?: SandboxBackend;
 
   /** Optional function to modify the prompt before running the experiment. @default undefined */
   editPrompt?: (prompt: string) => string;
@@ -112,7 +105,7 @@ export interface ResolvedExperimentConfig {
   scripts: string[];
   timeout: number;
   setup?: SetupFunction;
-  sandbox: SandboxBackend | 'auto';
+  sandbox: SandboxBackend;
   editPrompt?: (prompt: string) => string;
   copyFiles: 'none' | 'changed' | 'all';
 }
@@ -129,7 +122,7 @@ export interface RunnableExperimentConfig {
   scripts: string[];
   timeout: number;
   setup?: SetupFunction;
-  sandbox: SandboxBackend | 'auto';
+  sandbox: SandboxBackend;
   editPrompt?: (prompt: string) => string;
   copyFiles: 'none' | 'changed' | 'all';
 }

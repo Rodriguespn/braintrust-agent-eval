@@ -64,7 +64,6 @@ export {
   splitTestFiles,
   verifyNoTestFiles,
   createSandbox,
-  resolveBackend,
   getSandboxBackendInfo,
 } from './lib/sandbox.js';
 
@@ -137,6 +136,4 @@ export {
   loadTranscript,
   SUPPORTED_AGENTS,
   parseClaudeCodeTranscript,
-  parseCodexTranscript,
-  parseOpenCodeTranscript,
 } from './lib/o11y/index.js';

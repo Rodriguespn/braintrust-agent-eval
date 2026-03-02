@@ -95,13 +95,13 @@ describe('sandbox utilities', () => {
   });
 });
 
-// Integration tests that require actual Vercel credentials
+// Integration tests that require Docker
 // These are skipped by default and can be run with SANDBOX_INTEGRATION_TEST=1
 describe.skipIf(!process.env.SANDBOX_INTEGRATION_TEST)('sandbox integration', () => {
-  it('can create and stop a sandbox', async () => {
-    const { SandboxManager } = await import('./sandbox.js');
+  it('can create and stop a Docker sandbox', async () => {
+    const { DockerSandboxManager } = await import('./docker-sandbox.js');
 
-    const sandbox = await SandboxManager.create({ timeout: 60000 });
+    const sandbox = await DockerSandboxManager.create({ timeout: 60000 });
     expect(sandbox.sandboxId).toBeDefined();
 
     const result = await sandbox.runCommand('echo', ['hello']);

@@ -1,6 +1,6 @@
 /**
  * Claude Code agent implementation.
- * Uses Vercel AI Gateway for model access.
+ * Uses direct Anthropic API for model access.
  */
 
 import type { Agent, AgentRunOptions, AgentRunResult } from './types.js';
@@ -10,27 +10,22 @@ import {
   collectLocalFiles,
   splitTestFiles,
   verifyNoTestFiles,
-  type SandboxManager,
 } from '../sandbox.js';
 import type { DockerSandboxManager } from '../docker-sandbox.js';
 import {
   runValidation,
   captureGeneratedFiles,
   createVitestConfig,
-  AI_GATEWAY,
   ANTHROPIC_DIRECT,
   initGitAndCommit,
   injectTranscriptContext,
 } from './shared.js';
 
-/** Union type for sandbox implementations */
-type AnySandbox = SandboxManager | DockerSandboxManager;
-
 /**
  * Capture the Claude Code transcript from the sandbox.
  * Claude Code stores transcripts at ~/.claude/projects/-{workdir}/{session-id}.jsonl
  */
-async function captureTranscript(sandbox: AnySandbox): Promise<string | undefined> {
+async function captureTranscript(sandbox: DockerSandboxManager): Promise<string | undefined> {
   try {
     // Get the working directory to construct the transcript path
     const workdir = sandbox.getWorkingDirectory();
@@ -57,15 +52,15 @@ async function captureTranscript(sandbox: AnySandbox): Promise<string | undefine
 }
 
 /**
- * Create Claude Code agent with specified authentication method.
+ * Create Claude Code agent using direct Anthropic API.
  */
-export function createClaudeCodeAgent({ useVercelAiGateway }: { useVercelAiGateway: boolean }): Agent {
+export function createClaudeCodeAgent(): Agent {
   return {
-    name: useVercelAiGateway ? 'vercel-ai-gateway/claude-code' : 'claude-code',
-    displayName: useVercelAiGateway ? 'Claude Code (Vercel AI Gateway)' : 'Claude Code',
+    name: 'claude-code',
+    displayName: 'Claude Code',
 
     getApiKeyEnvVar(): string {
-      return useVercelAiGateway ? AI_GATEWAY.apiKeyEnvVar : ANTHROPIC_DIRECT.apiKeyEnvVar;
+      return ANTHROPIC_DIRECT.apiKeyEnvVar;
     },
 
     getDefaultModel(): ModelTier {
@@ -74,7 +69,7 @@ export function createClaudeCodeAgent({ useVercelAiGateway }: { useVercelAiGatew
 
     async run(fixturePath: string, options: AgentRunOptions): Promise<AgentRunResult> {
     const startTime = Date.now();
-    let sandbox: AnySandbox | null = null;
+    let sandbox: DockerSandboxManager | null = null;
     let agentOutput = '';
     let transcript: string | undefined;
     let aborted = false;
@@ -145,7 +140,7 @@ export function createClaudeCodeAgent({ useVercelAiGateway }: { useVercelAiGatew
 
       // Upload workspace files (excluding tests)
       await sandbox.uploadFiles(workspaceFiles);
-	  
+
 	  await initGitAndCommit(sandbox);
 
       // Run setup function if provided
@@ -176,22 +171,14 @@ export function createClaudeCodeAgent({ useVercelAiGateway }: { useVercelAiGatew
       // Verify no test files in sandbox
       await verifyNoTestFiles(sandbox);
 
-      // Run Claude Code with appropriate authentication
+      // Run Claude Code with direct Anthropic API
       const claudeResult = await sandbox.runCommand(
         'claude',
         ['--print', '--model', options.model, '--dangerously-skip-permissions', options.prompt],
         {
-          env: useVercelAiGateway
-            ? {
-                // AI Gateway configuration for Claude Code
-                ANTHROPIC_BASE_URL: AI_GATEWAY.baseUrl,
-                ANTHROPIC_AUTH_TOKEN: options.apiKey,
-                ANTHROPIC_API_KEY: '',
-              }
-            : {
-                // Direct Anthropic API
-                ANTHROPIC_API_KEY: options.apiKey,
-              },
+          env: {
+            ANTHROPIC_API_KEY: options.apiKey,
+          },
         }
       );
 

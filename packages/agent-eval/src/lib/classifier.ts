@@ -6,7 +6,7 @@
  * - "infra" — infrastructure broke (API errors, rate limits, crashes)
  * - "timeout" — the run hit its time limit
  *
- * Uses AI classification via the Vercel AI Gateway. Requires AI_GATEWAY_API_KEY or VERCEL_OIDC_TOKEN.
+ * Uses AI classification via the Anthropic API. Requires ANTHROPIC_API_KEY.
  */
 
 import { readFileSync, readdirSync, statSync, writeFileSync } from 'fs';
@@ -17,11 +17,11 @@ import type { Classification, FailureType } from './types.js';
 
 /**
  * Check if the classifier feature is enabled.
- * The classifier requires either AI_GATEWAY_API_KEY or VERCEL_OIDC_TOKEN to be set.
- * If neither is available, classification is disabled and housekeeping won't clean up non-model failures.
+ * The classifier requires ANTHROPIC_API_KEY to be set.
+ * If not available, classification is disabled and housekeeping won't clean up non-model failures.
  */
 export function isClassifierEnabled(): boolean {
-  return !!(process.env.AI_GATEWAY_API_KEY || process.env.VERCEL_OIDC_TOKEN);
+  return !!process.env.ANTHROPIC_API_KEY;
 }
 
 const CLASSIFIER_SYSTEM_PROMPT = `You are a failure classifier for an AI coding agent benchmark.
@@ -197,17 +197,18 @@ export function createClassifierTools(evalResultDir: string) {
 }
 
 /**
- * Classify a failure using AI via the Vercel AI Gateway.
- * Requires AI_GATEWAY_API_KEY in the environment.
+ * Classify a failure using AI via the Anthropic API.
+ * Requires ANTHROPIC_API_KEY in the environment.
  */
 export async function classifyWithAI(
   evalResultDir: string,
   evalName: string,
   experimentName: string
 ): Promise<Classification | null> {
-  const { generateText, hasToolCall, createGateway } = await import('ai');
+  const { generateText, hasToolCall } = await import('ai');
+  const { createAnthropic } = await import('@ai-sdk/anthropic');
 
-  const gateway = createGateway({ apiKey: process.env.AI_GATEWAY_API_KEY ?? process.env.VERCEL_OIDC_TOKEN ?? '' });
+  const anthropic = createAnthropic({ apiKey: process.env.ANTHROPIC_API_KEY ?? '' });
 
   let classification: Classification | null = null;
 
@@ -233,7 +234,7 @@ export async function classifyWithAI(
 
   try {
     await generateText({
-      model: gateway('anthropic/claude-haiku-4-5-20251001'),
+      model: anthropic('claude-sonnet-4-5'),
       system: CLASSIFIER_SYSTEM_PROMPT,
       prompt: `Classify the failure for eval "${evalName}" (experiment: ${experimentName}). Use the exploration tools to investigate, then call classify() with your verdict.`,
       tools: allTools,

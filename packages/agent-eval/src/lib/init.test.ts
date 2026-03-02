@@ -47,7 +47,7 @@ describe('init utilities', () => {
       expect(existsSync(configPath)).toBe(true);
 
       const content = readFileSync(configPath, 'utf-8');
-      expect(content).toContain("agent: 'vercel-ai-gateway/claude-code'");
+      expect(content).toContain("agent: 'claude-code'");
     });
 
     it('creates example eval fixture', () => {
@@ -111,8 +111,7 @@ describe('init utilities', () => {
       const envPath = join(projectDir, '.env.example');
       const content = readFileSync(envPath, 'utf-8');
 
-      expect(content).toContain('AI_GATEWAY_API_KEY');
-      expect(content).toContain('VERCEL_TOKEN');
+      expect(content).toContain('ANTHROPIC_API_KEY');
     });
 
     it('creates .gitignore with common patterns', () => {
@@ -139,7 +138,7 @@ describe('init utilities', () => {
       // This allows the test to work before publishing
       const pkgPath = join(projectDir, 'package.json');
       const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
-      pkg.devDependencies['@vercel/agent-eval'] = `file:${PROJECT_ROOT}`;
+      pkg.devDependencies['@supabase/agent-evals'] = `file:${PROJECT_ROOT}`;
       writeFileSync(pkgPath, JSON.stringify(pkg, null, 2));
 
       // Install dependencies

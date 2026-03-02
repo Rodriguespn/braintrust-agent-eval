@@ -23,7 +23,7 @@ export interface AgentRunOptions {
   /** Abort signal to cancel the run */
   signal?: AbortSignal;
   /** Sandbox backend to use */
-  sandbox?: SandboxBackend | 'auto';
+  sandbox?: SandboxBackend;
 }
 
 /**

@@ -1,6 +1,6 @@
 /**
  * Observability module for agent-eval.
- * Provides transcript parsing and analysis across all agents.
+ * Provides transcript parsing and analysis for Claude Code.
  */
 
 // Types
@@ -20,7 +20,3 @@ export type { ParseableAgent } from './parsers/index.js';
 
 // Individual parsers (for advanced use)
 export { parseClaudeCodeTranscript } from './parsers/claude-code.js';
-export { parseCodexTranscript } from './parsers/codex.js';
-export { parseOpenCodeTranscript } from './parsers/opencode.js';
-export { parseGeminiTranscript } from './parsers/gemini.js';
-export { parseCursorTranscript } from './parsers/cursor.js';

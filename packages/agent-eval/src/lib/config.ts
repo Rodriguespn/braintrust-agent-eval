@@ -21,7 +21,7 @@ export const CONFIG_DEFAULTS = {
   earlyExit: true,
   scripts: [] as string[],
   timeout: 600, // 10 minutes
-  sandbox: 'auto' as const,
+  sandbox: 'docker' as const,
   copyFiles: 'none' as const,
 };
 
@@ -29,15 +29,7 @@ export const CONFIG_DEFAULTS = {
  * Zod schema for validating experiment configuration.
  */
 const experimentConfigSchema = z.object({
-  agent: z.enum([
-    'vercel-ai-gateway/claude-code',
-    'claude-code',
-    'vercel-ai-gateway/codex',
-    'codex',
-    'vercel-ai-gateway/opencode',
-    'gemini',
-    'cursor',
-  ]),
+  agent: z.enum(['claude-code']),
   model: z.union([z.string(), z.array(z.string())]).optional(),
   evals: z
     .union([z.string(), z.array(z.string()), z.function().args(z.string()).returns(z.boolean())])
@@ -47,7 +39,7 @@ const experimentConfigSchema = z.object({
   scripts: z.array(z.string()).optional(),
   timeout: z.number().positive().optional(),
   setup: z.function().optional(),
-  sandbox: z.enum(['vercel', 'docker', 'auto']).optional(),
+  sandbox: z.enum(['docker']).optional(),
   editPrompt: z.function().args(z.string()).returns(z.string()).optional(),
   copyFiles: z.enum(['none', 'changed', 'all']).optional(),
 });

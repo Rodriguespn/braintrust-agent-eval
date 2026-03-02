@@ -38,7 +38,7 @@ const program = new Command();
 program.enablePositionalOptions();
 
 program
-  .name('@vercel/agent-eval')
+  .name('@supabase/agent-evals')
   .description('Framework for testing AI coding agents in isolated sandboxes')
   .version(pkg.version);
 
@@ -145,10 +145,9 @@ async function runExperimentCommand(configInput: string, options: { dry?: boolea
     // Get the agent to check for required API key
     const agent = getAgent(config.agent);
     const apiKeyEnvVar = agent.getApiKeyEnvVar();
-    const apiKey = process.env[apiKeyEnvVar] ?? process.env.VERCEL_OIDC_TOKEN;
+    const apiKey = process.env[apiKeyEnvVar];
     if (!apiKey) {
-      console.error(chalk.red(`${apiKeyEnvVar} (or VERCEL_OIDC_TOKEN) environment variable is required`));
-      console.error(chalk.gray(`Get your API key at: https://vercel.com/dashboard -> AI Gateway`));
+      console.error(chalk.red(`${apiKeyEnvVar} environment variable is required`));
       process.exit(1);
     }
 
@@ -238,7 +237,7 @@ program
 
 /**
  * playground command - Launch the web-based results viewer
- * Spawns @vercel/agent-eval-playground (downloaded on-demand via npx if not installed)
+ * Spawns @supabase/agent-evals-playground (downloaded on-demand via npx if not installed)
  */
 program
   .command('playground')
@@ -266,7 +265,7 @@ program
     // Try to run the playground package directly, fall back to npx
     const result = spawnSync(
       'npx',
-      ['@vercel/agent-eval-playground', ...playgroundArgs],
+      ['@supabase/agent-evals-playground', ...playgroundArgs],
       { stdio: 'inherit', cwd: process.cwd() }
     );
 
@@ -433,10 +432,10 @@ async function runAllCommand(experimentArgs: string[], options: { dry?: boolean;
       if (!isClassifierEnabled()) {
         console.log(
           chalk.yellow(
-            '\n⚠️  Classifier disabled: Neither AI_GATEWAY_API_KEY nor VERCEL_OIDC_TOKEN is set.\n' +
+            '\n⚠️  Classifier disabled: ANTHROPIC_API_KEY is not set.\n' +
             '  The classifier automatically identifies why evals failed (model error, infrastructure issue, or timeout).\n' +
             '  Without it, all failed results are kept as-is and housekeeping will not remove non-model failures.\n' +
-            '  Set AI_GATEWAY_API_KEY or VERCEL_OIDC_TOKEN to enable classifier for cleaner result management.\n'
+            '  Set ANTHROPIC_API_KEY to enable classifier for cleaner result management.\n'
           )
         );
       }
@@ -472,9 +471,9 @@ async function runAllCommand(experimentArgs: string[], options: { dry?: boolean;
 
         const agent = getAgent(config.agent);
         const apiKeyEnvVar = agent.getApiKeyEnvVar();
-        const apiKey = process.env[apiKeyEnvVar] ?? process.env.VERCEL_OIDC_TOKEN;
+        const apiKey = process.env[apiKeyEnvVar];
         if (!apiKey) {
-          console.error(chalk.red(`${apiKeyEnvVar} (or VERCEL_OIDC_TOKEN) not set, skipping ${baseExperimentName}`));
+          console.error(chalk.red(`${apiKeyEnvVar} not set, skipping ${baseExperimentName}`));
           return;
         }
 

@@ -1,9 +1,8 @@
 /**
  * Sandbox integration for isolated eval execution.
- * Supports both Vercel Sandbox and Docker backends.
+ * Uses Docker backend exclusively.
  */
 
-import { Sandbox as VercelSandbox } from '@vercel/sandbox';
 import type { Sandbox } from './types.js';
 import { readFileSync } from 'fs';
 import { join } from 'path';
@@ -17,10 +16,10 @@ export const DEFAULT_SANDBOX_TIMEOUT = 600000;
 /**
  * Supported sandbox backends.
  */
-export type SandboxBackend = 'vercel' | 'docker';
+export type SandboxBackend = 'docker';
 
 /**
- * Information about the resolved sandbox backend.
+ * Information about the sandbox backend.
  */
 export interface SandboxBackendInfo {
   /** Which backend will be used */
@@ -65,14 +64,8 @@ export interface SandboxOptions {
   timeout?: number;
   /** Runtime environment */
   runtime?: 'node20' | 'node24';
-  /** Sandbox backend to use. 'auto' will use Vercel if token present, else Docker. @default 'auto' */
-  backend?: SandboxBackend | 'auto';
-  /** Optional explicit Vercel auth token for sandbox API auth */
-  token?: string;
-  /** Optional explicit Vercel team ID for sandbox API auth */
-  teamId?: string;
-  /** Optional explicit Vercel project ID for sandbox API auth */
-  projectId?: string;
+  /** Sandbox backend to use. @default 'docker' */
+  backend?: SandboxBackend;
 }
 
 /**
@@ -93,235 +86,30 @@ export interface SandboxFile {
 }
 
 /**
- * Wrapper around Vercel Sandbox providing a cleaner API.
- */
-export class SandboxManager implements Sandbox {
-  private sandbox: VercelSandbox;
-  private _workingDirectory: string = '/vercel/sandbox';
-
-  constructor(sandbox: VercelSandbox) {
-    this.sandbox = sandbox;
-  }
-
-  /**
-   * Create a new sandbox instance.
-   */
-  static async create(options: SandboxOptions = {}): Promise<SandboxManager> {
-    const timeout = options.timeout ?? DEFAULT_SANDBOX_TIMEOUT;
-    const runtime = options.runtime ?? 'node24';
-    const credentials = resolveVercelSandboxCredentials(options);
-
-    const sandbox = await VercelSandbox.create({
-      runtime,
-      timeout,
-      ...(credentials ?? {}),
-    });
-    return new SandboxManager(sandbox);
-  }
-
-  /**
-   * Get the sandbox ID.
-   */
-  get sandboxId(): string {
-    return this.sandbox.sandboxId;
-  }
-
-  /**
-   * Run a command in the sandbox.
-   */
-  async runCommand(
-    command: string,
-    args: string[] = [],
-    options: { env?: Record<string, string> } = {}
-  ): Promise<CommandResult> {
-    const result = await this.sandbox.runCommand({
-      cmd: command,
-      args,
-      env: options.env,
-    });
-
-    return {
-      stdout: await result.stdout(),
-      stderr: await result.stderr(),
-      exitCode: result.exitCode,
-    };
-  }
-
-  /**
-   * Run a shell command (through bash).
-   */
-  async runShell(command: string, env?: Record<string, string>): Promise<CommandResult> {
-    const result = await this.sandbox.runCommand({
-      cmd: 'bash',
-      args: ['-c', command],
-      env,
-    });
-
-    return {
-      stdout: await result.stdout(),
-      stderr: await result.stderr(),
-      exitCode: result.exitCode,
-    };
-  }
-
-  /**
-   * Read a file from the sandbox.
-   */
-  async readFile(path: string): Promise<string> {
-    const result = await this.runCommand('cat', [path]);
-    if (result.exitCode !== 0) {
-      throw new Error(`Failed to read file ${path}: ${result.stderr}`);
-    }
-    return result.stdout;
-  }
-
-  /**
-   * Check if a file exists in the sandbox.
-   */
-  async fileExists(path: string): Promise<boolean> {
-    const result = await this.runCommand('test', ['-f', path]);
-    return result.exitCode === 0;
-  }
-
-  /**
-   * Write files to the sandbox.
-   */
-  async writeFiles(files: Record<string, string>): Promise<void> {
-    const sandboxFiles: Array<{ path: string; content: Buffer }> = [];
-
-    for (const [path, content] of Object.entries(files)) {
-      sandboxFiles.push({
-        path,
-        content: Buffer.from(content, 'utf-8'),
-      });
-    }
-
-    await this.sandbox.writeFiles(sandboxFiles);
-  }
-
-  /**
-   * Upload files from local filesystem to sandbox.
-   */
-  async uploadFiles(files: SandboxFile[]): Promise<void> {
-    const sandboxFiles = files.map((f) => ({
-      path: f.path,
-      content: typeof f.content === 'string' ? Buffer.from(f.content, 'utf-8') : f.content,
-    }));
-
-    await this.sandbox.writeFiles(sandboxFiles);
-  }
-
-  /**
-   * Get the working directory.
-   */
-  getWorkingDirectory(): string {
-    return this._workingDirectory;
-  }
-
-  /**
-   * Stop and clean up the sandbox.
-   */
-  async stop(): Promise<void> {
-    await this.sandbox.stop();
-  }
-}
-
-function resolveVercelSandboxCredentials(options: SandboxOptions): {
-  token: string;
-  teamId: string;
-  projectId: string;
-} | null {
-  const token = options.token ?? process.env.VERCEL_TOKEN;
-  const teamId = options.teamId ?? process.env.VERCEL_TEAM_ID;
-  const projectId = options.projectId ?? process.env.VERCEL_PROJECT_ID;
-
-  if (token && teamId && projectId) {
-    return { token, teamId, projectId };
-  }
-
-  return null;
-}
-
-/**
- * Resolve which sandbox backend to use based on options.
- *
- * Priority:
- * 1. Explicit backend in options (if not 'auto')
- * 2. Auto-detect: Vercel if token present, else Docker
- */
-export function resolveBackend(options?: SandboxOptions): SandboxBackend {
-  // Explicit backend in options
-  if (options?.backend && options.backend !== 'auto') {
-    return options.backend;
-  }
-
-  // Auto-detect: Vercel if token present, else Docker
-  if (process.env.VERCEL_TOKEN || process.env.VERCEL_OIDC_TOKEN) {
-    return 'vercel';
-  }
-
-  return 'docker';
-}
-
-/**
  * Get information about the sandbox backend that will be used.
  * Useful for displaying to users.
  */
-export function getSandboxBackendInfo(options?: SandboxOptions): SandboxBackendInfo {
-  const backend = resolveBackend(options);
-
-  // Determine the reason
-  let reason: 'explicit' | 'auto-detected';
-  let description: string;
-
-  const hasExplicitOption = options?.backend && options.backend !== 'auto';
-
-  if (hasExplicitOption) {
-    reason = 'explicit';
-    description = `${backend} (explicit)`;
-  } else {
-    reason = 'auto-detected';
-    if (backend === 'vercel') {
-      description = `${backend} (auto-detected: VERCEL_TOKEN found)`;
-    } else {
-      description = `${backend} (auto-detected: no VERCEL_TOKEN, using Docker)`;
-    }
-  }
-
-  return { backend, reason, description };
+export function getSandboxBackendInfo(_options?: SandboxOptions): SandboxBackendInfo {
+  return {
+    backend: 'docker',
+    reason: 'explicit',
+    description: 'docker',
+  };
 }
 
 /**
- * Create a sandbox using the appropriate backend.
- *
- * By default, uses Vercel Sandbox if VERCEL_TOKEN is present,
- * otherwise falls back to Docker.
+ * Create a sandbox using the Docker backend.
  *
  * @example
  * ```typescript
- * // Auto-detect backend
  * const sandbox = await createSandbox();
- *
- * // Explicit Docker
  * const sandbox = await createSandbox({ backend: 'docker' });
- *
- * // Explicit Vercel
- * const sandbox = await createSandbox({ backend: 'vercel' });
  * ```
  */
 export async function createSandbox(
   options: SandboxOptions = {}
-): Promise<SandboxManager | DockerSandboxManager> {
-  const backend = resolveBackend(options);
-
-  if (backend === 'docker') {
-    return DockerSandboxManager.create({
-      timeout: options.timeout,
-      runtime: options.runtime,
-    });
-  }
-
-  return SandboxManager.create({
+): Promise<DockerSandboxManager> {
+  return DockerSandboxManager.create({
     timeout: options.timeout,
     runtime: options.runtime,
   });
@@ -445,7 +233,7 @@ export function splitTestFiles(files: SandboxFile[]): {
  * Verify that no test files exist in the sandbox.
  */
 export async function verifyNoTestFiles(
-  sandbox: SandboxManager | DockerSandboxManager
+  sandbox: DockerSandboxManager
 ): Promise<void> {
   const result = await sandbox.runShell(
     "find . -path './node_modules' -prune  -o -name 'EVAL.ts' -print"
@@ -456,3 +244,6 @@ export async function verifyNoTestFiles(
     throw new Error(`Test files found in sandbox before agent run: ${foundTests}`);
   }
 }
+
+// Keep SandboxManager as an alias for DockerSandboxManager for backwards compatibility
+export { DockerSandboxManager as SandboxManager };

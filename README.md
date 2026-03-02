@@ -1,10 +1,10 @@
-# @vercel/agent-eval
+# @supabase/agent-evals
 
-Test AI coding agents on your framework. Measure what actually works.
+Test Claude Code on your framework. Measure what actually works.
 
 ## Why?
 
-You're building a frontend framework and want AI agents to work well with it. But how do you know if:
+You're building a framework and want Claude Code to work well with it. But how do you know if:
 - Your documentation helps agents write correct code?
 - Adding an MCP server improves agent success rates?
 - Sonnet performs as well as Opus for your use cases?
@@ -16,21 +16,21 @@ You're building a frontend framework and want AI agents to work well with it. Bu
 
 ```bash
 # Create a new eval project
-npx @vercel/agent-eval init my-agent-evals
+npx @supabase/agent-evals init my-agent-evals
 cd my-agent-evals
 
 # Install dependencies
 npm install
 
-# Add your API keys
+# Add your API key
 cp .env.example .env
-# Edit .env with your AI_GATEWAY_API_KEY and VERCEL_TOKEN
+# Edit .env with your ANTHROPIC_API_KEY
 
 # Preview what will run (no API calls, no cost)
-npx @vercel/agent-eval --dry
+npx @supabase/agent-evals --dry
 
 # Run all experiments
-npx @vercel/agent-eval
+npx @supabase/agent-evals
 ```
 
 ## CLI
@@ -38,7 +38,7 @@ npx @vercel/agent-eval
 ### Run all experiments
 
 ```bash
-npx @vercel/agent-eval
+npx @supabase/agent-evals
 ```
 
 With no arguments, the CLI discovers every `experiments/*.ts` file and runs them all. Each experiment runs in parallel. Results with matching fingerprints are reused automatically (see [Result Reuse](#result-reuse)).
@@ -46,7 +46,7 @@ With no arguments, the CLI discovers every `experiments/*.ts` file and runs them
 ### Run a single experiment
 
 ```bash
-npx @vercel/agent-eval cc
+npx @supabase/agent-evals cc
 ```
 
 The argument is the experiment filename without `.ts`. This resolves to `experiments/cc.ts`.
@@ -62,18 +62,18 @@ The argument is the experiment filename without `.ts`. This resolves to `experim
 Flags work with both modes:
 
 ```bash
-npx @vercel/agent-eval --dry          # preview all experiments
-npx @vercel/agent-eval cc --dry       # preview a single experiment
-npx @vercel/agent-eval --smoke        # smoke test all experiments
-npx @vercel/agent-eval cc --smoke     # smoke test one experiment
+npx @supabase/agent-evals --dry          # preview all experiments
+npx @supabase/agent-evals cc --dry       # preview a single experiment
+npx @supabase/agent-evals --smoke        # smoke test all experiments
+npx @supabase/agent-evals cc --smoke     # smoke test one experiment
 ```
 
 ### Other commands
 
 ```bash
-npx @vercel/agent-eval init <name>          # scaffold a new eval project
-npx @vercel/agent-eval playground           # launch web-based results viewer
-npx @vercel/agent-eval playground --watch   # live mode (watches for new results)
+npx @supabase/agent-evals init <name>          # scaffold a new eval project
+npx @supabase/agent-evals playground           # launch web-based results viewer
+npx @supabase/agent-evals playground --watch   # live mode (watches for new results)
 ```
 
 ## Creating Evals
@@ -168,11 +168,11 @@ The `results.o11y` object is a `TranscriptSummary` with these fields:
 
 ```typescript
 // experiments/my-experiment.ts
-import type { ExperimentConfig } from '@vercel/agent-eval';
+import type { ExperimentConfig } from '@supabase/agent-evals';
 
 const config: ExperimentConfig = {
   // Required: which agent to use
-  agent: 'vercel-ai-gateway/claude-code',
+  agent: 'claude-code',
 
   // Model to use (defaults vary by agent)
   // Provide an array to run the same experiment across multiple models.
@@ -204,9 +204,6 @@ const config: ExperimentConfig = {
   // Rewrite the prompt before running
   editPrompt: (prompt) => `Use the skill.\n\n${prompt}`,
 
-  // Sandbox backend (default: 'auto' -- Vercel if token present, else Docker)
-  sandbox: 'auto',
-
   // Copy project files to results directory (default: 'none')
   // 'none' - don't copy files
   // 'changed' - copy only files modified by the agent
@@ -217,45 +214,17 @@ const config: ExperimentConfig = {
 export default config;
 ```
 
-### Agent selection
-
-```typescript
-// Vercel AI Gateway (recommended -- unified billing and observability)
-agent: 'vercel-ai-gateway/claude-code'  // Claude Code via AI Gateway
-agent: 'vercel-ai-gateway/codex'        // OpenAI Codex via AI Gateway
-agent: 'vercel-ai-gateway/opencode'     // OpenCode via AI Gateway
-
-// Direct API (uses provider keys directly)
-agent: 'claude-code'  // requires ANTHROPIC_API_KEY
-agent: 'codex'        // requires OPENAI_API_KEY
-agent: 'gemini'       // requires GEMINI_API_KEY
-agent: 'cursor'       // requires CURSOR_API_KEY
-```
-
 ### Multi-model experiments
 
 Provide an array of models to run the same experiment on each one. Results are stored under separate directories (`experiment-name/model-name`):
 
 ```typescript
 const config: ExperimentConfig = {
-  agent: 'vercel-ai-gateway/claude-code',
+  agent: 'claude-code',
   model: ['opus', 'sonnet'],
   runs: 10,
 };
 ```
-
-### OpenCode model format
-
-OpenCode uses Vercel AI Gateway exclusively. Models must use the `vercel/{provider}/{model}` format:
-
-```typescript
-model: 'vercel/anthropic/claude-sonnet-4'
-model: 'vercel/openai/gpt-4o'
-model: 'vercel/moonshotai/kimi-k2'
-model: 'vercel/minimax/minimax-m2.1'
-```
-
-The `vercel/` prefix is required. Using `anthropic/claude-sonnet-4` (without `vercel/`) will fail with a "provider not found" error.
 
 ## A/B Testing
 
@@ -263,10 +232,10 @@ The real power is comparing different approaches. Create multiple experiment con
 
 ```typescript
 // experiments/control.ts
-import type { ExperimentConfig } from '@vercel/agent-eval';
+import type { ExperimentConfig } from '@supabase/agent-evals';
 
 const config: ExperimentConfig = {
-  agent: 'vercel-ai-gateway/claude-code',
+  agent: 'claude-code',
   model: 'opus',
   runs: 10,
   earlyExit: false,
@@ -277,10 +246,10 @@ export default config;
 
 ```typescript
 // experiments/with-mcp.ts
-import type { ExperimentConfig } from '@vercel/agent-eval';
+import type { ExperimentConfig } from '@supabase/agent-evals';
 
 const config: ExperimentConfig = {
-  agent: 'vercel-ai-gateway/claude-code',
+  agent: 'claude-code',
   model: 'opus',
   runs: 10,
   earlyExit: false,
@@ -298,7 +267,7 @@ export default config;
 ```
 
 ```bash
-npx @vercel/agent-eval
+npx @supabase/agent-evals
 ```
 
 Compare the results:
@@ -365,7 +334,7 @@ The `fingerprint` field enables result reuse across runs. The `classification` a
 Browse results in a web-based dashboard:
 
 ```bash
-npx @vercel/agent-eval playground
+npx @supabase/agent-evals playground
 ```
 
 This opens a local Next.js app with:
@@ -376,7 +345,7 @@ This opens a local Next.js app with:
 
 Options:
 ```bash
-npx @vercel/agent-eval playground --results-dir ./results --evals-dir ./evals --port 3001
+npx @supabase/agent-evals playground --results-dir ./results --evals-dir ./evals --port 3001
 ```
 
 ### File Copying
@@ -419,12 +388,12 @@ When evals fail, the framework optionally classifies each failure as one of:
 - **infra** -- infrastructure broke (API errors, rate limits, crashes)
 - **timeout** -- the run hit its time limit
 
-Classification uses Claude Sonnet 4.5 via the Vercel AI Gateway with sandboxed read-only tools to inspect result files. This requires `AI_GATEWAY_API_KEY` or `VERCEL_OIDC_TOKEN` to be set.
+Classification uses Claude Sonnet 4.5 via the Anthropic API. This requires `ANTHROPIC_API_KEY` to be set.
 
 ### Classifier Status
 
-- **Enabled** (with `AI_GATEWAY_API_KEY` or `VERCEL_OIDC_TOKEN`): Classifications are cached in `classification.json`. Non-model failures are automatically removed during housekeeping (unless `--ack-failures` is used). The auto-retry feature helps handle transient issues.
-- **Disabled** (without keys): The classifier is skipped. All results are preserved as-is. Housekeeping will not remove non-model failures (only incomplete and duplicate results). Add `AI_GATEWAY_API_KEY` to `.env` to enable the classifier.
+- **Enabled** (with `ANTHROPIC_API_KEY`): Classifications are cached in `classification.json`. Non-model failures are automatically removed during housekeeping (unless `--ack-failures` is used). The auto-retry feature helps handle transient issues.
+- **Disabled** (without key): The classifier is skipped. All results are preserved as-is. Housekeeping will not remove non-model failures (only incomplete and duplicate results). Add `ANTHROPIC_API_KEY` to `.env` to enable the classifier.
 
 ### Auto-retry
 
@@ -439,25 +408,13 @@ After each experiment completes, the framework automatically:
 
 ## Environment Variables
 
-Every run requires an API key for the agent and a token for the sandbox. Classifier is optional.
-
-| Variable             | Required when                          | Description                                                                                  |
-|----------------------|----------------------------------------|----------------------------------------------------------------------------------------------|
-| `AI_GATEWAY_API_KEY` | `vercel-ai-gateway/` agents or classifier | Vercel AI Gateway key -- required for `vercel-ai-gateway/` agents and failure classification |
-| `ANTHROPIC_API_KEY`  | `agent: 'claude-code'`                 | Direct Anthropic API key                                                                     |
-| `OPENAI_API_KEY`     | `agent: 'codex'`                       | Direct OpenAI API key                                                                        |
-| `GEMINI_API_KEY`     | `agent: 'gemini'`                      | Direct Google Gemini API key                                                                 |
-| `CURSOR_API_KEY`     | `agent: 'cursor'`                      | Direct Cursor API key                                                                        |
-| `VERCEL_TOKEN`       | Always (pick one)                      | Vercel personal access token -- for local dev                                                |
-| `VERCEL_OIDC_TOKEN`  | Always (pick one) OR for classifier    | Vercel OIDC token -- for CI/CD pipelines, or enables classifier without `AI_GATEWAY_API_KEY` |
-
-The **classifier is optional**: if neither `AI_GATEWAY_API_KEY` nor `VERCEL_OIDC_TOKEN` is set, failure classification is skipped and all results are preserved as-is. Set either key to enable the classifier, which automatically identifies and removes non-model failures (infrastructure errors, rate limits, timeouts).
-
-OpenCode only supports Vercel AI Gateway (`vercel-ai-gateway/opencode`). There is no direct API option for OpenCode.
+| Variable             | Required | Description                              |
+|----------------------|----------|------------------------------------------|
+| `ANTHROPIC_API_KEY`  | Yes      | Anthropic API key for Claude Code and the failure classifier |
 
 ### Setup
 
-The `init` command generates a `.env.example` file. Copy it and fill in your keys:
+The `init` command generates a `.env.example` file. Copy it and fill in your key:
 
 ```bash
 cp .env.example .env
@@ -465,58 +422,9 @@ cp .env.example .env
 
 The framework loads `.env.local` first, then `.env` as a fallback, via [dotenv](https://github.com/motdotla/dotenv).
 
-### Vercel AI Gateway (recommended)
-
-One key for all models:
-
-```bash
-AI_GATEWAY_API_KEY=your-ai-gateway-api-key
-VERCEL_TOKEN=your-vercel-token
-```
-
-### Direct API keys (no Vercel account required)
-
-If you don't have a Vercel account, use provider API keys directly:
-
-```bash
-ANTHROPIC_API_KEY=sk-ant-...      # For Claude Code
-OPENAI_API_KEY=sk-proj-...        # For Codex
-```
-
-And choose ONE sandbox option (no Vercel key needed):
-
-```bash
-# Option 1: Use Docker (free, no account needed)
-# Just set sandbox: 'docker' in your experiment config, that's it!
-
-# Option 2: Use Vercel (requires free account)
-VERCEL_TOKEN=your-vercel-token
-```
-
-#### Minimal setup example
-
-Claude Code via direct API with Docker sandbox:
-
-```typescript
-// experiments/my-eval.ts
-import type { ExperimentConfig } from '@vercel/agent-eval';
-
-const config: ExperimentConfig = {
-  agent: 'claude-code',  // Direct API (not vercel-ai-gateway/...)
-  model: 'opus',
-  runs: 1,
-  sandbox: 'docker',     // No VERCEL_TOKEN needed
-};
-
-export default config;
-```
-
-Then just set:
 ```bash
 ANTHROPIC_API_KEY=sk-ant-...
 ```
-
-That's it! The classifier will be disabled (since you don't have `AI_GATEWAY_API_KEY`), but all features work fine — you'll just see a warning that non-model failure classification is skipped.
 
 ## Tips
 
