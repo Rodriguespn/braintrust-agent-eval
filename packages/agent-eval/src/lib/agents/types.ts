@@ -48,8 +48,6 @@ export interface AgentRunResult {
   error?: string;
   /** Duration in milliseconds */
   duration: number;
-  /** Test result (EVAL.ts always runs) */
-  testResult?: ScriptResult;
   /** Results from configured scripts */
   scriptsResults?: Record<string, ScriptResult>;
   /** Sandbox ID for debugging */

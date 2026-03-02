@@ -31,15 +31,10 @@ import { readFixtureFiles } from './fixture.js';
 export function agentResultToEvalRunData(
 	agentResult: AgentRunResult,
 ): EvalRunData {
-	// Collect output content from scripts and tests
+	// Collect output content from scripts
 	const outputContent: EvalRunData['outputContent'] = {};
 
-	// Add EVAL.ts test output
-	if (agentResult.testResult?.output) {
-		outputContent.eval = agentResult.testResult.output;
-	}
-
-	// Add all script outputs (nested under 'scripts' to avoid collision)
+	// Add all script outputs
 	if (
 		agentResult.scriptsResults &&
 		Object.keys(agentResult.scriptsResults).length > 0
@@ -227,41 +222,21 @@ export function saveResults(
 			const outputsDir = join(runDir, 'outputs');
 			mkdirSync(outputsDir, { recursive: true });
 
-			if (runData.outputContent) {
+			if (runData.outputContent?.scripts) {
 				const outputPaths: EvalRunResult['outputPaths'] = {};
-
-				// Save EVAL.ts test output
-				if (runData.outputContent.eval) {
-					writeFileSync(
-						join(outputsDir, 'eval.txt'),
-						runData.outputContent.eval,
-					);
-					outputPaths.eval = './outputs/eval.txt';
-				}
-
-				// Save npm script outputs under outputs/scripts/ to avoid collision with eval.txt
-				if (runData.outputContent.scripts) {
-					const scriptsDir = join(outputsDir, 'scripts');
-					mkdirSync(scriptsDir, { recursive: true });
-					outputPaths.scripts = {};
-					for (const [name, content] of Object.entries(
-						runData.outputContent.scripts,
-					)) {
-						if (content) {
-							const fileName = `${name}.txt`;
-							writeFileSync(join(scriptsDir, fileName), content);
-							outputPaths.scripts[
-								name
-							] = `./outputs/scripts/${fileName}`;
-						}
+				const scriptsDir = join(outputsDir, 'scripts');
+				mkdirSync(scriptsDir, { recursive: true });
+				outputPaths.scripts = {};
+				for (const [name, content] of Object.entries(
+					runData.outputContent.scripts,
+				)) {
+					if (content) {
+						const fileName = `${name}.txt`;
+						writeFileSync(join(scriptsDir, fileName), content);
+						outputPaths.scripts[name] = `./outputs/scripts/${fileName}`;
 					}
 				}
-
-				if (
-					outputPaths.eval ||
-					(outputPaths.scripts &&
-						Object.keys(outputPaths.scripts).length > 0)
-				) {
+				if (Object.keys(outputPaths.scripts).length > 0) {
 					resultWithPaths.outputPaths = outputPaths;
 				}
 			}

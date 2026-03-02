@@ -75,7 +75,7 @@ describe('init utilities', () => {
 
       expect(pkg.name).toBe('custom-name');
       expect(pkg.type).toBe('module');
-      expect(pkg.scripts).toBeUndefined();
+      expect(pkg.scripts?.eval).toContain('braintrust eval');
     });
 
     it('creates eval fixture with type: module', () => {

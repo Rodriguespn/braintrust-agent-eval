@@ -38,8 +38,7 @@ describe('runExperiment', () => {
             success: true,
             output: 'Agent output',
             duration: 50,
-            testResult: { success: true, output: 'Test passed' },
-            scriptsResults: {},
+                        scriptsResults: {},
           };
         }),
       };
@@ -123,8 +122,7 @@ describe('runExperiment', () => {
             success: true,
             output: 'Agent output',
             duration: 10,
-            testResult: { success: true, output: 'Test passed' },
-            scriptsResults: {},
+                        scriptsResults: {},
           };
         }),
       };
@@ -174,8 +172,7 @@ describe('runExperiment', () => {
           output: 'Agent output',
           duration: 6000,
           error: 'Test failed',
-          testResult: { success: false, output: 'Test failed' },
-          scriptsResults: {},
+                    scriptsResults: {},
         }),
       };
 
@@ -224,8 +221,7 @@ describe('runExperiment', () => {
           success: true,
           output: 'Agent output',
           duration: 1000,
-          testResult: { success: true, output: 'Test passed' },
-          scriptsResults: {},
+                    scriptsResults: {},
         }),
       };
 
@@ -291,8 +287,7 @@ describe('runExperiment', () => {
               success: true,
               output: 'Agent output',
               duration: 10,
-              testResult: { success: true, output: 'Test passed' },
-              scriptsResults: {},
+                            scriptsResults: {},
             };
           }
 
@@ -313,8 +308,7 @@ describe('runExperiment', () => {
             success: true,
             output: 'Agent output',
             duration: 100,
-            testResult: { success: true, output: 'Test passed' },
-            scriptsResults: {},
+                        scriptsResults: {},
           };
         }),
       };
@@ -374,8 +368,7 @@ describe('runExperiment', () => {
             success: true,
             output: 'Agent output',
             duration: 1000,
-            testResult: { success: true, output: 'Test passed' },
-            scriptsResults: {},
+                        scriptsResults: {},
           };
         }),
       };
@@ -434,8 +427,7 @@ describe('runExperiment', () => {
               success: true,
               output: 'Agent output',
               duration: 6000,
-              testResult: { success: true, output: 'Test passed' },
-              scriptsResults: {},
+                            scriptsResults: {},
             };
           } else {
             const success = count > 1;
@@ -444,7 +436,6 @@ describe('runExperiment', () => {
               output: 'Agent output',
               duration: 6000,
               error: success ? undefined : 'Test failed',
-              testResult: { success, output: success ? 'Test passed' : 'Test failed' },
               scriptsResults: {},
             };
           }
@@ -507,8 +498,7 @@ describe('runExperiment', () => {
           success: true,
           output: 'Agent output',
           duration: 1000,
-          testResult: { success: true, output: 'Test passed' },
-          scriptsResults: {},
+                    scriptsResults: {},
         }),
       };
 
@@ -570,8 +560,7 @@ describe('runExperiment', () => {
             success: true,
             output: 'Should not reach this',
             duration: 500,
-            testResult: { success: true, output: 'Test passed' },
-            scriptsResults: {},
+                        scriptsResults: {},
           };
         }),
       };
@@ -641,8 +630,7 @@ describe('runExperiment', () => {
             success: true,
             output: 'Done',
             duration: 500,
-            testResult: { success: true, output: 'Test passed' },
-            scriptsResults: {},
+                        scriptsResults: {},
           };
         }),
       };

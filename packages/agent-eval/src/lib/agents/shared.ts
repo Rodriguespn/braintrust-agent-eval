@@ -5,86 +5,30 @@
 import type { ScriptResult } from './types.js';
 import type { SandboxManager } from '../sandbox.js';
 import type { DockerSandboxManager } from '../docker-sandbox.js';
-import { parseTranscript } from '../o11y/index.js';
 
 /** Union type for sandbox implementations */
 type AnySandbox = SandboxManager | DockerSandboxManager;
 
 /**
- * Well-known directory where transcript context is written inside the sandbox.
- * EVAL.ts tests can read `__agent_eval__/results.json` to assert on agent behavior
- * (e.g. which shell commands were run, files modified, tool calls made).
+ * Results from running npm scripts inside the sandbox.
  */
-export const TRANSCRIPT_CONTEXT_DIR = '__agent_eval__';
-
-/** Path to the results file inside the sandbox. */
-export const TRANSCRIPT_CONTEXT_PATH = `${TRANSCRIPT_CONTEXT_DIR}/results.json`;
-
-/**
- * Combined validation results.
- */
-export interface ValidationResults {
+export interface ScriptsResult {
   allPassed: boolean;
-  test?: ScriptResult;
   scripts: Record<string, ScriptResult>;
 }
 
 /**
- * Detect which eval file exists in the sandbox (EVAL.ts or EVAL.tsx).
- * Case-sensitive: Only matches exact uppercase filenames.
- * Returns the filename if found, or 'EVAL.ts' as fallback.
+ * Run npm scripts in the sandbox.
  */
-async function detectEvalFile(sandbox: AnySandbox): Promise<string> {
-  try {
-    // List files in current directory and check for exact case match
-    const lsResult = await sandbox.runShell('ls -1');
-    if (lsResult.exitCode === 0) {
-      const files = lsResult.stdout.split('\n').map((f) => f.trim());
-
-      // Check for EVAL.tsx first (prefer JSX if both exist)
-      if (files.includes('EVAL.tsx')) {
-        return 'EVAL.tsx';
-      }
-
-      // Check for EVAL.ts
-      if (files.includes('EVAL.ts')) {
-        return 'EVAL.ts';
-      }
-    }
-  } catch {
-    // Ignore errors
-  }
-
-  // Default to EVAL.ts (will fail later if it doesn't exist)
-  return 'EVAL.ts';
-}
-
-/**
- * Run validation scripts in the sandbox.
- */
-export async function runValidation(
+export async function runScripts(
   sandbox: AnySandbox,
   scripts: string[]
-): Promise<ValidationResults> {
-  const results: ValidationResults = {
+): Promise<ScriptsResult> {
+  const results: ScriptsResult = {
     allPassed: true,
     scripts: {},
   };
 
-  // Detect which eval file exists (EVAL.ts or EVAL.tsx)
-  const evalFile = await detectEvalFile(sandbox);
-
-  // Always run vitest for the eval file (explicitly specify the file)
-  const testResult = await sandbox.runCommand('npx', ['vitest', 'run', evalFile]);
-  results.test = {
-    success: testResult.exitCode === 0,
-    output: testResult.stdout + testResult.stderr,
-  };
-  if (!results.test.success) {
-    results.allPassed = false;
-  }
-
-  // Run configured scripts
   for (const script of scripts) {
     const scriptResult = await sandbox.runCommand('npm', ['run', script]);
     const result: ScriptResult = {
@@ -102,13 +46,15 @@ export async function runValidation(
   return results;
 }
 
+/**
+ * Initialize a git repo and commit the initial state so we can diff against it
+ * to capture the files the agent generated.
+ */
 export async function initGitAndCommit(sandbox: AnySandbox): Promise<void> {
   await sandbox.writeFiles({
     ".gitignore": "node_modules/\n",
   });
 
-  // init a git repo and set user and name since those are needed. Commit everything to have a clean diff with HEAD to capture
-  // the generated files
   await sandbox.runShell(
     'git init && git config user.email "agent-eval@localhost" && git config user.name "agent-eval" && git add . && git commit -m "init"'
   );
@@ -155,55 +101,6 @@ export async function captureGeneratedFiles(
   }
 
   return { generatedFiles, deletedFiles };
-}
-
-/**
- * Create vitest config for running EVAL.ts or EVAL.tsx.
- */
-export async function createVitestConfig(sandbox: AnySandbox): Promise<void> {
-  // Detect which eval file exists
-  const evalFile = await detectEvalFile(sandbox);
-
-  await sandbox.writeFiles({
-    'vitest.config.ts': `
-import { defineConfig } from 'vitest/config';
-export default defineConfig({
-  test: {
-    include: ['${evalFile}'],
-    globals: false,
-  },
-});
-`,
-  });
-}
-
-/**
- * Inject transcript context into the sandbox so EVAL.ts tests can assert on agent behavior.
- * Writes parsed transcript summary to `__agent_eval__/results.json`.
- *
- * This is best-effort: failures are silently ignored since it's supplementary data.
- */
-export async function injectTranscriptContext(
-  sandbox: AnySandbox,
-  rawTranscript: string | undefined,
-  agentName: string,
-  model?: string,
-): Promise<void> {
-  try {
-    const transcript = rawTranscript
-      ? parseTranscript(rawTranscript, agentName, model)
-      : null;
-
-    const context = {
-      o11y: transcript?.summary ?? null,
-    };
-
-    await sandbox.writeFiles({
-      [TRANSCRIPT_CONTEXT_PATH]: JSON.stringify(context, null, 2),
-    });
-  } catch {
-    // Best-effort: don't fail the eval if context injection fails
-  }
 }
 
 /**

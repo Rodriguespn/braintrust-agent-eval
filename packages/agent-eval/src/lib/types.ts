@@ -172,9 +172,7 @@ export interface EvalRunResult {
   transcriptRawPath?: string;
   /** Paths to output files (relative to run directory) */
   outputPaths?: {
-    /** Path to EVAL.ts test output */
-    eval?: string;
-    /** Paths to npm script outputs (nested to avoid collision) */
+    /** Paths to npm script outputs */
     scripts?: Record<string, string>;
   };
 }
@@ -187,11 +185,9 @@ export interface EvalRunData {
   result: EvalRunResult;
   /** Structured transcript from Claude Code (saved to transcript.jsonl) */
   transcript?: string;
-  /** Script/test output content (saved to outputs/) */
+  /** Script output content (saved to outputs/) */
   outputContent?: {
-    /** EVAL.ts test output */
-    eval?: string;
-    /** npm script outputs (nested to avoid collision) */
+    /** npm script outputs */
     scripts?: Record<string, string>;
   };
   /** Files generated/modified by the agent (path -> content). Used for copyFiles option. */

@@ -34,7 +34,6 @@ describe('results utilities', () => {
         output: 'Agent output',
         transcript: '{"role":"assistant","content":"Hello"}',
         duration: 45000,
-        testResult: { success: true, output: 'test output' },
         scriptsResults: {
           build: { success: true, output: 'build output' },
         },
@@ -46,7 +45,6 @@ describe('results utilities', () => {
       expect(runData.result.status).toBe('passed');
       expect(runData.result.duration).toBe(45);
       expect(runData.transcript).toBe('{"role":"assistant","content":"Hello"}');
-      expect(runData.outputContent?.eval).toBe('test output');
       expect(runData.outputContent?.scripts?.build).toBe('build output');
     });
 
@@ -56,7 +54,6 @@ describe('results utilities', () => {
         output: 'Agent output',
         duration: 30000,
         error: 'API Error: model not found',
-        testResult: { success: false, output: 'test failed' },
         scriptsResults: {},
       };
 
@@ -127,7 +124,7 @@ describe('results utilities', () => {
           {
             result: { status: 'passed', duration: 10 },
             transcript: '{"role":"assistant"}',
-            outputContent: { eval: 'Test output here', scripts: { build: 'Build output here' } },
+            outputContent: { scripts: { build: 'Build output here' } },
           },
           { result: { status: 'failed', duration: 8, error: 'Error' } },
         ]),
@@ -159,18 +156,11 @@ describe('results utilities', () => {
       expect(existsSync(join(outputDir, 'eval-1', 'run-2', 'transcript.json'))).toBe(false);
       expect(existsSync(join(outputDir, 'eval-1', 'run-2', 'transcript-raw.jsonl'))).toBe(false);
 
-      // Check outputs/ directory exists and contains test output + script outputs
+      // Check outputs/ directory exists and contains script outputs
       expect(existsSync(join(outputDir, 'eval-1', 'run-1', 'outputs'))).toBe(true);
-      expect(existsSync(join(outputDir, 'eval-1', 'run-1', 'outputs', 'eval.txt'))).toBe(true);
       expect(existsSync(join(outputDir, 'eval-1', 'run-1', 'outputs', 'scripts', 'build.txt'))).toBe(true);
 
-      // Verify output file content
-      const testsOutput = readFileSync(
-        join(outputDir, 'eval-1', 'run-1', 'outputs', 'eval.txt'),
-        'utf-8'
-      );
-      expect(testsOutput).toBe('Test output here');
-
+      // Verify script output file content is correct
       const buildOutput = readFileSync(
         join(outputDir, 'eval-1', 'run-1', 'outputs', 'scripts', 'build.txt'),
         'utf-8'
@@ -199,7 +189,6 @@ describe('results utilities', () => {
       expect(resultJson.transcriptPath).toBe('./transcript.json');
       expect(resultJson.transcriptRawPath).toBe('./transcript-raw.jsonl');
       expect(resultJson.outputPaths).toEqual({
-        eval: './outputs/eval.txt',
         scripts: {
           build: './outputs/scripts/build.txt',
         },
@@ -226,7 +215,7 @@ describe('results utilities', () => {
       expect(parsedTranscript).toHaveProperty('summary');
     });
 
-    it('does not collide when script is named "eval"', () => {
+    it('saves script output correctly when script is named "eval"', () => {
       const config: ResolvedExperimentConfig = {
         agent: 'claude-code',
         model: 'opus',
@@ -242,7 +231,6 @@ describe('results utilities', () => {
           {
             result: { status: 'passed', duration: 10 },
             outputContent: {
-              eval: 'EVAL.ts test output',
               scripts: { eval: 'npm run eval output' },
             },
           },
@@ -258,16 +246,10 @@ describe('results utilities', () => {
 
       const outputDir = saveResults(results, {
         resultsDir: TEST_DIR,
-        experimentName: 'collision-test',
+        experimentName: 'script-named-eval-test',
       });
 
-      // Both files should exist and have different content
-      const evalTestOutput = readFileSync(
-        join(outputDir, 'eval-1', 'run-1', 'outputs', 'eval.txt'),
-        'utf-8'
-      );
-      expect(evalTestOutput).toBe('EVAL.ts test output');
-
+      // Script output should be saved under scripts/ with correct content
       const evalScriptOutput = readFileSync(
         join(outputDir, 'eval-1', 'run-1', 'outputs', 'scripts', 'eval.txt'),
         'utf-8'

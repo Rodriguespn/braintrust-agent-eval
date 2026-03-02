@@ -79,7 +79,7 @@ describe.skipIf(!process.env.INTEGRATION_TEST)('integration tests', () => {
       const pkg = JSON.parse(readFileSync(join(projectDir, 'package.json'), 'utf-8'));
       expect(pkg.name).toBe('test-project');
       expect(pkg.type).toBe('module');
-      expect(pkg.scripts).toBeUndefined();
+      expect(pkg.scripts?.eval).toContain('braintrust eval');
     });
 
     it('can load fixtures from generated project', () => {
@@ -116,14 +116,9 @@ describe.skipIf(!process.env.INTEGRATION_TEST)('integration tests', () => {
       );
       writeFileSync(
         join(fixtureDir, 'EVAL.ts'),
-        `
-import { test, expect } from 'vitest';
-import { readFileSync } from 'fs';
-
-test('greet exists', () => {
-  const content = readFileSync('src/index.ts', 'utf-8');
-  expect(content).toContain('greet');
-});
+        `export default function check(files: Record<string, string>): boolean {
+  return (files['src/index.ts'] ?? '').includes('greet');
+}
 `
       );
       writeFileSync(
@@ -132,7 +127,7 @@ test('greet exists', () => {
           name: 'simple-eval-claude',
           type: 'module',
           scripts: { build: 'tsc' },
-          devDependencies: { typescript: '^5.0.0', vitest: '^2.1.0' },
+          devDependencies: { typescript: '^5.0.0' },
         })
       );
       writeFileSync(
@@ -159,19 +154,17 @@ test('greet exists', () => {
         scripts: ['build'],
       });
 
-      // Verify result structure
+      // Verify the agent ran and produced output
       expect(result.result.duration).toBeGreaterThan(0);
-      expect(result.result.status).toBeDefined();
-      // Agent must actually succeed - not just return a result
-      if (result.result.status === 'failed') {
-        console.error('Agent failed with error:', result.result.error);
+      if (result.result.error) {
+        console.error('Agent error:', result.result.error);
       }
-      expect(result.result.status).toBe('passed');
+      expect(result.result.error).toBeUndefined();
 
-      // Verify output content exists (if available)
-      if (result.outputContent) {
-        expect(typeof result.outputContent).toBe('object');
-      }
+      // Verify the agent generated files with the expected content (host-side check)
+      expect(result.generatedFiles).toBeDefined();
+      const indexContent = result.generatedFiles?.['src/index.ts'] ?? '';
+      expect(indexContent).toContain('greet');
     }, 300000); // 5 minute timeout
   });
 });

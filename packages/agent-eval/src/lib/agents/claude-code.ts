@@ -13,12 +13,10 @@ import {
 } from '../sandbox.js';
 import type { DockerSandboxManager } from '../docker-sandbox.js';
 import {
-  runValidation,
+  runScripts,
   captureGeneratedFiles,
-  createVitestConfig,
   ANTHROPIC_DIRECT,
   initGitAndCommit,
-  injectTranscriptContext,
 } from './shared.js';
 
 /**
@@ -199,32 +197,22 @@ export function createClaudeCodeAgent(): Agent {
         };
       }
 
-      // Upload test files for validation
-      await sandbox.uploadFiles(testFiles);
-
-      // Create vitest config for EVAL.ts/tsx
-      await createVitestConfig(sandbox);
-
-      // Capture transcript before validation when available
+      // Capture transcript before running scripts
       await captureTranscriptBestEffort();
 
-      // Inject transcript context so EVAL.ts tests can assert on agent behavior
-      await injectTranscriptContext(sandbox, transcript, 'claude-code', options.model);
-
-      // Run validation scripts
-      const validationResults = await runValidation(sandbox, options.scripts ?? []);
+      // Run configured npm scripts (build, lint, etc.)
+      const scriptsResult = await runScripts(sandbox, options.scripts ?? []);
 
       // Capture generated files
       const { generatedFiles, deletedFiles } = await captureGeneratedFiles(sandbox);
 
       hasReturned = true;
       return {
-        success: validationResults.allPassed,
+        success: scriptsResult.allPassed,
         output: agentOutput,
         transcript,
         duration: Date.now() - startTime,
-        testResult: validationResults.test,
-        scriptsResults: validationResults.scripts,
+        scriptsResults: scriptsResult.scripts,
         sandboxId: sandbox.sandboxId,
         generatedFiles,
         deletedFiles,

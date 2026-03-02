@@ -74,9 +74,6 @@ export { DockerSandboxManager } from './lib/docker-sandbox.js';
 // Re-export agent utilities
 export type { AgentRunOptions, AgentRunResult } from './lib/agents/types.js';
 
-// Re-export transcript context constants
-export { TRANSCRIPT_CONTEXT_DIR, TRANSCRIPT_CONTEXT_PATH } from './lib/agents/shared.js';
-
 // Re-export agent registry
 export type { Agent, ScriptResult } from './lib/agents/types.js';
 export { getAgent, listAgents, registerAgent } from './lib/agents/index.js';
@@ -118,6 +115,10 @@ export { Dashboard, createConsoleProgressHandler } from './lib/dashboard.js';
 // Re-export init utilities
 export type { InitOptions } from './lib/init.js';
 export { initProject, getPostInitInstructions } from './lib/init.js';
+
+// Re-export Braintrust integration
+export type { BraintrustEvalOptions, EvalCheckFn } from './lib/braintrust.js';
+export { createBraintrustEval } from './lib/braintrust.js';
 
 // Re-export o11y (observability) utilities
 export type {
