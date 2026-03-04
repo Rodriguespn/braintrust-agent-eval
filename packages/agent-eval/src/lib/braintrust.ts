@@ -1,56 +1,375 @@
 /**
  * Braintrust integration for running agent evals.
  *
- * Replaces the Vitest-in-Docker EVAL.ts pattern with host-side assertions:
- * - The agent runs in Docker and its generated files are captured
- * - Each fixture's EVAL.ts exports a `check(files)` function called on the host
- * - Results are logged as Braintrust experiments
+ * ## Composable API (recommended — mirrors Studio's pattern)
  *
- * Usage:
- *   npx braintrust eval experiments/braintrust.eval.ts
+ * Build your own dataset.ts, scorer.ts, and eval.ts:
+ *
+ * ```ts
+ * // dataset.ts
+ * import { loadAllFixtures } from '@supabase/agent-evals'
+ * import type { EvalFixture } from '@supabase/agent-evals'
+ * import type { EvalCase } from 'braintrust'
+ *
+ * const { fixtures } = loadAllFixtures('./evals')
+ * export const dataset: EvalCase<EvalFixture, null, { category: string }>[] = fixtures.map(f => ({
+ *   input: f,
+ *   expected: null,
+ *   metadata: { category: 'general' },
+ * }))
+ *
+ * // scorer.ts
+ * import type { AgentEvalScorer } from '@supabase/agent-evals'
+ *
+ * export const myScorer: AgentEvalScorer<null> = async ({ output }) => ({
+ *   name: 'has-index-file',
+ *   score: 'src/index.ts' in (output.generatedFiles ?? {}) ? 1 : 0,
+ * })
+ *
+ * // my-evals.eval.ts
+ * import { Eval } from 'braintrust'
+ * import { createAgentTask, builtinScorers } from '@supabase/agent-evals'
+ * import { dataset } from './dataset'
+ * import { myScorer } from './scorer'
+ *
+ * Eval('my-project', {
+ *   data: () => dataset,
+ *   task: createAgentTask({ agent: 'claude-code', model: 'opus' }),
+ *   scores: [builtinScorers.passed, myScorer],
+ *   trialCount: 1,
+ * })
+ * ```
+ *
+ * ## Convenience API (for simple fixture-based setups)
+ *
+ * ```ts
+ * import { createBraintrustEval } from '@supabase/agent-evals'
+ * createBraintrustEval({ projectName: 'my-project', evalsDir: './evals', config: { agent: 'claude-code' } })
+ * ```
+ *
+ * Run with: `npx braintrust eval my-evals.eval.ts`
  */
 
-import { Eval } from 'braintrust';
+import { Eval, currentSpan, initDataset, init, type FullInitOptions } from 'braintrust';
 import { createJiti } from 'jiti';
 import { join } from 'path';
-import type { ExperimentConfig, EvalFixture, EvalRunData } from './types.js';
+import type { ExperimentConfig, EvalFixture, EvalRunData, ExperimentResults } from './types.js';
 import { resolveConfig } from './config.js';
 import { loadAllFixtures } from './fixture.js';
 import { runSingleEval } from './runner.js';
+import { parseTranscriptSummary } from './o11y/index.js';
+
+const jiti = createJiti(import.meta.url);
 
 /** Check function exported from a fixture's EVAL.ts */
 export type EvalCheckFn = (files: Record<string, string>) => boolean | Promise<boolean>;
+
+/**
+ * Scorer function type for agent evals.
+ *
+ * Matches Braintrust's EvalScorer shape with `input: EvalFixture` and `output: EvalRunData` fixed.
+ * Return `null` to skip scoring for a given case (e.g. scorer is not applicable).
+ *
+ * ```ts
+ * import type { AgentEvalScorer } from '@supabase/agent-evals'
+ *
+ * export const myScorer: AgentEvalScorer<{ mustHaveFile: string }> = async ({ output, expected }) => {
+ *   if (!expected.mustHaveFile) return null
+ *   return {
+ *     name: 'file-presence',
+ *     score: expected.mustHaveFile in (output.generatedFiles ?? {}) ? 1 : 0,
+ *   }
+ * }
+ * ```
+ */
+export type AgentEvalScorer<Expected = unknown> = (args: {
+  input: EvalFixture;
+  output: EvalRunData;
+  expected: Expected;
+}) => Promise<{ name: string; score: number; metadata?: Record<string, unknown> } | null>
+  | { name: string; score: number; metadata?: Record<string, unknown> } | null;
+
+/**
+ * Built-in scorers provided by the framework.
+ *
+ * `builtinScorers.passed` — scores 1 if the fixture's EVAL.ts `check(files)` returns true.
+ * This is the standard scorer for fixture-based evals.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const builtinScorers: Record<string, AgentEvalScorer<any>> = {
+  passed: async ({ input: fixture, output }: { input: EvalFixture; output: EvalRunData; expected: unknown }) => {
+    const evalPath = join(fixture.path, 'EVAL.ts');
+    try {
+      const mod = await jiti.import(evalPath) as { default?: EvalCheckFn };
+      if (typeof mod.default !== 'function') {
+        throw new Error('EVAL.ts must export a default function');
+      }
+      const passed = await Promise.resolve(mod.default(output.generatedFiles ?? {}));
+      return { name: 'passed', score: passed ? 1 : 0 };
+    } catch (error) {
+      console.error(`Scorer error for "${fixture.name}":`, error);
+      return { name: 'passed', score: 0 };
+    }
+  },
+};
+
+/**
+ * Push local fixtures to a Braintrust dataset for versioning and sharing.
+ * Local files remain the source of truth — Braintrust receives a snapshot.
+ *
+ * ```ts
+ * import { loadAllFixtures, pushFixturesToDataset } from '@supabase/agent-evals'
+ *
+ * const { fixtures } = loadAllFixtures('./evals')
+ * await pushFixturesToDataset('my-project', 'agent-evals-fixtures', fixtures)
+ * ```
+ */
+export async function pushFixturesToDataset(
+  projectName: string,
+  datasetName: string,
+  fixtures: EvalFixture[]
+): Promise<void> {
+  const dataset = initDataset(projectName, { dataset: datasetName });
+  for (const fixture of fixtures) {
+    dataset.insert({
+      input: { name: fixture.name, prompt: fixture.prompt },
+      expected: null,
+      metadata: { name: fixture.name, path: fixture.path },
+    });
+  }
+  await dataset.flush();
+}
+
+/**
+ * Creates a Braintrust-compatible task function that runs the configured agent on an EvalFixture.
+ * Automatically instruments the run with phase-level child spans when called inside a Braintrust Eval.
+ *
+ * Pass the returned function directly to Braintrust's `Eval({ task: ... })`.
+ *
+ * ```ts
+ * Eval('my-project', {
+ *   data: () => dataset,
+ *   task: createAgentTask({ agent: 'claude-code', model: 'opus' }),
+ *   scores: [builtinScorers.passed],
+ * })
+ * ```
+ */
+export function createAgentTask(
+  config: ExperimentConfig,
+  options?: { apiKey?: string }
+): (input: EvalFixture) => Promise<EvalRunData> {
+  const resolved = resolveConfig(config);
+  const apiKey = options?.apiKey ?? process.env.ANTHROPIC_API_KEY ?? '';
+
+  if (Array.isArray(resolved.model)) {
+    throw new Error('createAgentTask requires a single model string, not an array.');
+  }
+
+  const model = resolved.model as string;
+
+  return async (input: EvalFixture): Promise<EvalRunData> => {
+    const parentSpan = currentSpan();
+    // Spans that have been started but not yet ended (keyed by phase name).
+    // agent:run is kept open after onPhase('end') so we can enrich it with transcript metrics.
+    const openSpans = new Map<string, ReturnType<typeof parentSpan.startSpan>>();
+
+    const result = await runSingleEval(input, {
+      agent: resolved.agent,
+      model,
+      timeout: resolved.timeout,
+      apiKey,
+      setup: resolved.setup,
+      scripts: resolved.scripts,
+      sandbox: resolved.sandbox,
+      editPrompt: resolved.editPrompt,
+      onPhase: (name, status, durationMs) => {
+        if (status === 'start') {
+          openSpans.set(name, parentSpan.startSpan({ name }));
+        } else {
+          const span = openSpans.get(name);
+          if (span) {
+            if (durationMs !== undefined) span.log({ metrics: { durationMs } });
+            // Keep agent:run open — we enrich it with transcript metrics below
+            if (name !== 'agent:run') {
+              span.end();
+              openSpans.delete(name);
+            }
+          }
+        }
+      },
+    });
+
+    // Enrich the agent:run span with transcript metrics, then close it
+    const agentRunSpan = openSpans.get('agent:run');
+    if (agentRunSpan) {
+      if (result.transcript) {
+        try {
+          const summary = parseTranscriptSummary(result.transcript, resolved.agent);
+          agentRunSpan.log({
+            metrics: {
+              totalTurns: summary.totalTurns,
+              totalToolCalls: summary.totalToolCalls,
+              errors: summary.errors.length,
+              thinkingBlocks: summary.thinkingBlocks,
+            },
+          });
+        } catch {
+          // transcript parsing is best-effort
+        }
+      }
+      agentRunSpan.end();
+      openSpans.delete('agent:run');
+    }
+
+    // Safety: close any remaining open spans
+    for (const [, span] of openSpans) {
+      span.end();
+    }
+
+    return result;
+  };
+}
 
 export interface BraintrustEvalOptions {
   /** Braintrust project name (must exist in your Braintrust account) */
   projectName: string;
   /** Absolute path to the directory containing eval fixtures */
   evalsDir: string;
-  /** Experiment configuration (same as ExperimentConfig, single model only) */
+  /** Experiment configuration (single model only) */
   config: ExperimentConfig;
   /** Anthropic API key. Defaults to process.env.ANTHROPIC_API_KEY */
   apiKey?: string;
+  /**
+   * Scorer functions. Defaults to `[builtinScorers.passed]`.
+   * For custom scorers, import `AgentEvalScorer` and define your own.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  scores?: AgentEvalScorer<any>[];
+  /** If set, push fixtures to this Braintrust dataset name before running */
+  datasetName?: string;
 }
 
 /**
- * Register a Braintrust eval that:
- * 1. Loads fixtures from `evalsDir`
- * 2. Runs the agent on each fixture in Docker
- * 3. Scores results by calling the fixture's EVAL.ts `check(files)` function on the host
- * 4. Logs everything to Braintrust
+ * Options for uploading experiment results to Braintrust.
+ */
+export interface BraintrustUploadOptions {
+  /** Braintrust project name (must already exist in your account) */
+  projectName?: string;
+  /** Braintrust project ID (alternative to projectName) */
+  projectId?: string;
+  /** Braintrust API key. Defaults to process.env.BRAINTRUST_API_KEY */
+  apiKey?: string;
+  /** Override experiment name. Defaults to `${model}-${startedAt}` */
+  experimentName?: string;
+}
+
+/**
+ * Upload already-completed experiment results to a new Braintrust experiment.
+ * Creates one experiment for the run, logging each eval/run-index as a traced span.
+ * Returns the Braintrust experiment URL.
  *
- * Each fixture's EVAL.ts must export a default function:
  * ```ts
- * export default function check(files: Record<string, string>): boolean {
- *   return (files['src/index.ts'] ?? '').includes('greet');
- * }
+ * import { runExperiment, uploadExperimentToBraintrust, loadAllFixtures } from '@supabase/agent-evals'
+ *
+ * const { fixtures } = loadAllFixtures('./evals')
+ * const results = await runExperiment({ config, fixtures, apiKey, resultsDir, experimentName })
+ * const url = await uploadExperimentToBraintrust(results, {
+ *   projectId: process.env.BRAINTRUST_PROJECT_ID,
+ * }, fixtures)
+ * console.log('Braintrust experiment:', url)
  * ```
  */
+export async function uploadExperimentToBraintrust(
+  results: ExperimentResults,
+  options: BraintrustUploadOptions,
+  fixtures?: EvalFixture[],
+): Promise<string> {
+  if (!options.projectId && !options.projectName) {
+    throw new Error('Either projectId or projectName is required in BraintrustUploadOptions');
+  }
+
+  const { model, agent } = results.config;
+  const experimentName = options.experimentName ?? `${model}-${results.startedAt}`;
+  const fixtureMap = new Map((fixtures ?? []).map((f) => [f.name, f]));
+
+  const initOptions: FullInitOptions<false> = {
+    project: options.projectName,
+    projectId: options.projectId,
+    experiment: experimentName,
+    apiKey: options.apiKey,
+    metadata: {
+      model,
+      agent,
+      startedAt: results.startedAt,
+      completedAt: results.completedAt,
+    },
+  };
+
+  const experiment = init(initOptions);
+
+  for (const evalSummary of results.evals) {
+    const fixture = fixtureMap.get(evalSummary.name);
+
+    for (let runIndex = 0; runIndex < evalSummary.runs.length; runIndex++) {
+      const run = evalSummary.runs[runIndex];
+
+      const scores: Record<string, number> = {
+        passed: run.result.status === 'passed' ? 1 : 0,
+      };
+
+      const metadata: Record<string, unknown> = {
+        evalName: evalSummary.name,
+        runIndex,
+        duration: run.result.duration,
+        model,
+        agent,
+      };
+
+      if (run.transcript) {
+        try {
+          const summary = parseTranscriptSummary(run.transcript, agent);
+          metadata.totalTurns = summary.totalTurns;
+          metadata.totalToolCalls = summary.totalToolCalls;
+          metadata.errors = summary.errors;
+          metadata.thinkingBlocks = summary.thinkingBlocks;
+        } catch {
+          // transcript parsing is best-effort
+        }
+      }
+
+      experiment.traced(
+        (span) => {
+          span.log({
+            input: { eval: evalSummary.name, prompt: fixture?.prompt ?? '' },
+            output: {
+              status: run.result.status,
+              error: run.result.error,
+              scripts: run.outputContent?.scripts,
+            },
+            expected: null,
+            scores,
+            metadata,
+            datasetRecordId: evalSummary.name,
+          });
+        },
+        { name: `${evalSummary.name}/run-${runIndex}` },
+      );
+    }
+  }
+
+  const summary = await experiment.summarize();
+  return summary.experimentUrl ?? '';
+}
+
+/**
+ * Convenience wrapper: registers a Braintrust eval for all fixtures in `evalsDir`.
+ * For full control over datasets and scorers, use `createAgentTask` and `builtinScorers` directly.
+ */
 export function createBraintrustEval(options: BraintrustEvalOptions): void {
-  const { projectName, evalsDir, config: rawConfig } = options;
+  const { projectName, evalsDir, config: rawConfig, datasetName } = options;
   const apiKey = options.apiKey ?? process.env.ANTHROPIC_API_KEY ?? '';
   const resolved = resolveConfig(rawConfig);
-  const jiti = createJiti(import.meta.url);
+  const scores = options.scores ?? [builtinScorers.passed];
 
   if (Array.isArray(resolved.model)) {
     throw new Error(
@@ -59,6 +378,7 @@ export function createBraintrustEval(options: BraintrustEvalOptions): void {
   }
 
   const model = resolved.model as string;
+  const task = createAgentTask(rawConfig, { apiKey });
 
   Eval(projectName, {
     data: async () => {
@@ -68,38 +388,15 @@ export function createBraintrustEval(options: BraintrustEvalOptions): void {
           `Fixture validation errors:\n${errors.map((e) => e.message).join('\n')}`
         );
       }
+      if (datasetName) {
+        await pushFixturesToDataset(projectName, datasetName, fixtures);
+      }
       return fixtures.map((fixture) => ({ input: fixture, expected: null }));
     },
 
-    task: async (fixture: EvalFixture): Promise<EvalRunData> => {
-      return runSingleEval(fixture, {
-        agent: resolved.agent,
-        model,
-        timeout: resolved.timeout,
-        apiKey,
-        setup: resolved.setup,
-        scripts: resolved.scripts,
-        sandbox: resolved.sandbox,
-        editPrompt: resolved.editPrompt,
-      });
-    },
+    task,
 
-    scores: [
-      async ({ input: fixture, output }: { input: EvalFixture; output: EvalRunData }) => {
-        const evalPath = join(fixture.path, 'EVAL.ts');
-        try {
-          const mod = await jiti.import(evalPath) as { default?: EvalCheckFn };
-          if (typeof mod.default !== 'function') {
-            throw new Error('EVAL.ts must export a default function');
-          }
-          const passed = await Promise.resolve(mod.default(output.generatedFiles ?? {}));
-          return { name: 'passed', score: passed ? 1 : 0 };
-        } catch (error) {
-          console.error(`Scorer error for "${fixture.name}":`, error);
-          return { name: 'passed', score: 0 };
-        }
-      },
-    ],
+    scores,
 
     trialCount: resolved.runs,
 

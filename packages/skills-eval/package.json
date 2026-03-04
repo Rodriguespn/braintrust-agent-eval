@@ -1,0 +1,20 @@
+{
+  "name": "skills-eval",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "eval": "npx braintrust eval src/canary.eval.ts",
+    "eval:dry": "npx braintrust eval --no-send-logs src/canary.eval.ts"
+  },
+  "dependencies": {
+    "@supabase/agent-evals": "*",
+    "autoevals": "^0.0.132",
+    "braintrust": "^3.2.0",
+    "common-tags": "^1.8.2"
+  },
+  "devDependencies": {
+    "@types/common-tags": "^1.8.4",
+    "tsx": "^4.7.0",
+    "typescript": "^5.6.0"
+  }
+}

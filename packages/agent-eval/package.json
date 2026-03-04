@@ -9,9 +9,6 @@
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "bin": {
-    "agent-eval": "dist/cli.js"
-  },
   "files": [
     "dist"
   ],
@@ -30,12 +27,10 @@
     "@ai-sdk/anthropic": "^2.0.0",
     "ai": "^5.0.11",
     "chalk": "^5.3.0",
-    "commander": "^12.1.0",
     "dockerode": "^4.0.9",
     "dotenv": "^16.4.5",
     "glob": "^11.0.0",
     "jiti": "^2.6.1",
-    "log-update": "^6.1.0",
     "p-limit": "^6.1.0",
     "minimatch": "^10.1.2",
     "tar-stream": "^3.1.7",

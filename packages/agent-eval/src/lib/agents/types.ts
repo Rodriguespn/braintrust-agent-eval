@@ -24,6 +24,8 @@ export interface AgentRunOptions {
   signal?: AbortSignal;
   /** Sandbox backend to use */
   sandbox?: SandboxBackend;
+  /** Callback for phase lifecycle events, used for tracing/observability */
+  onPhase?: (name: string, status: 'start' | 'end', durationMs?: number) => void;
 }
 
 /**

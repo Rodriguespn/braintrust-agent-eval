@@ -9,3 +9,5 @@ out/
 coverage/
 .vercel
 .env*.local
+
+packages/skills-eval/results/

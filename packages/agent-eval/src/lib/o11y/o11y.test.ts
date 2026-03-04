@@ -140,7 +140,7 @@ describe('o11y', () => {
       }
     });
 
-    it('extracts file paths from tool args', () => {
+    it('extracts file paths from tool args (path key)', () => {
       const transcript = JSON.stringify({
         type: 'assistant',
         content: [{ type: 'tool_use', name: 'Read', input: { path: 'src/utils.ts' } }],
@@ -148,6 +148,36 @@ describe('o11y', () => {
       const { events } = parseClaudeCodeTranscript(transcript);
 
       expect(events[0].tool?.args?._extractedPath).toBe('src/utils.ts');
+    });
+
+    it('extracts file paths from tool args (file_path key — real Claude Code format)', () => {
+      const transcript = JSON.stringify({
+        type: 'assistant',
+        content: [{ type: 'tool_use', name: 'Read', input: { file_path: '/home/sandbox/workspace/schema.sql' } }],
+      });
+      const { events } = parseClaudeCodeTranscript(transcript);
+
+      expect(events[0].tool?.args?._extractedPath).toBe('/home/sandbox/workspace/schema.sql');
+    });
+
+    it('parses real Claude Code nested format (outer type:assistant, inner message.content)', () => {
+      // Real Claude Code emits one JSONL line per content block with this structure
+      const line = JSON.stringify({
+        type: 'assistant',
+        message: {
+          type: 'message',
+          role: 'assistant',
+          content: [{ type: 'tool_use', name: 'Read', input: { file_path: '/home/sandbox/workspace/schema.sql' } }],
+        },
+        uuid: 'test-uuid',
+        timestamp: '2026-03-03T18:00:00.000Z',
+      });
+      const { events } = parseClaudeCodeTranscript(line);
+
+      expect(events).toHaveLength(1);
+      expect(events[0].type).toBe('tool_call');
+      expect(events[0].tool?.name).toBe('file_read');
+      expect(events[0].tool?.args?._extractedPath).toBe('/home/sandbox/workspace/schema.sql');
     });
 
     it('extracts URLs from web fetch args', () => {

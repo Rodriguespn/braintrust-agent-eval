@@ -40,4 +40,3 @@ When adding a new agent to the framework, follow this checklist:
 ### Pull Requests
 
 - Every PR that changes user-facing behavior should update the README
-- Every PR should include a changeset (`npx changeset`) for version management

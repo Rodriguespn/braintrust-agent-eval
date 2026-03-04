@@ -356,6 +356,7 @@ export async function runSingleEval<T extends ResolvedExperimentConfig['model']>
     sandbox?: ResolvedExperimentConfig['sandbox'];
     editPrompt?: (prompt: string) => string;
     verbose?: boolean;
+    onPhase?: (name: string, status: 'start' | 'end', durationMs?: number) => void;
   }
 ): Promise<T extends Array<unknown> ? EvalRunData[] : EvalRunData> {
   const agent = getAgent(options.agent ?? 'claude-code');
@@ -375,6 +376,7 @@ export async function runSingleEval<T extends ResolvedExperimentConfig['model']>
 		setup: options.setup,
 		scripts: options.scripts,
 		sandbox: options.sandbox,
+		onPhase: options.onPhase,
 	});
 
     results.push(agentResultToEvalRunData(agentResult));

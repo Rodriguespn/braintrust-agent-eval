@@ -102,23 +102,18 @@ export {
   isNonModelFailure,
 } from './lib/classifier.js';
 
-// Re-export housekeeping
-export { housekeep } from './lib/housekeeping.js';
-
 // Re-export runner utilities
-export type { RunExperimentOptions } from './lib/runner.js';
-export { runExperiment, runSingleEval, StartRateLimiter } from './lib/runner.js';
-
-// Re-export dashboard utilities
-export { Dashboard, createConsoleProgressHandler } from './lib/dashboard.js';
-
-// Re-export init utilities
-export type { InitOptions } from './lib/init.js';
-export { initProject, getPostInitInstructions } from './lib/init.js';
+export { runSingleEval } from './lib/runner.js';
 
 // Re-export Braintrust integration
-export type { BraintrustEvalOptions, EvalCheckFn } from './lib/braintrust.js';
-export { createBraintrustEval } from './lib/braintrust.js';
+export type { BraintrustEvalOptions, BraintrustUploadOptions, EvalCheckFn, AgentEvalScorer } from './lib/braintrust.js';
+export {
+  createBraintrustEval,
+  createAgentTask,
+  builtinScorers,
+  pushFixturesToDataset,
+  uploadExperimentToBraintrust,
+} from './lib/braintrust.js';
 
 // Re-export o11y (observability) utilities
 export type {

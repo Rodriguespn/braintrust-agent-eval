@@ -6,14 +6,12 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { mkdirSync, writeFileSync, rmSync, existsSync, readFileSync } from 'fs';
+import { mkdirSync, writeFileSync, rmSync, existsSync } from 'fs';
 import { join } from 'path';
 import { execSync } from 'child_process';
 import { config as dotenvConfig } from 'dotenv';
-import { initProject } from './lib/init.js';
-import { loadFixture, loadAllFixtures } from './lib/fixture.js';
+import { loadFixture } from './lib/fixture.js';
 import { runSingleEval } from './lib/runner.js';
-import { loadConfig } from './lib/config.js';
 import { getSandboxBackendInfo } from './lib/sandbox.js';
 
 // Load .env file (try .env.local first, then .env)
@@ -51,57 +49,6 @@ describe.skipIf(!process.env.INTEGRATION_TEST)('integration tests', () => {
     if (existsSync(TEST_DIR)) {
       rmSync(TEST_DIR, { recursive: true });
     }
-  });
-
-  describe('project initialization', () => {
-    // Create test project before all tests in this block
-    beforeAll(() => {
-      const projectDir = join(TEST_DIR, 'test-project');
-      if (!existsSync(projectDir)) {
-        initProject({
-          name: 'test-project',
-          targetDir: TEST_DIR,
-        });
-      }
-    });
-
-    it('creates a complete project structure', () => {
-      const projectDir = join(TEST_DIR, 'test-project');
-
-      // Verify structure
-      expect(existsSync(join(projectDir, 'package.json'))).toBe(true);
-      expect(existsSync(join(projectDir, 'experiments/cc.ts'))).toBe(true);
-      expect(existsSync(join(projectDir, 'evals/add-greeting/PROMPT.md'))).toBe(true);
-      expect(existsSync(join(projectDir, 'evals/add-greeting/EVAL.ts'))).toBe(true);
-      expect(existsSync(join(projectDir, 'evals/add-greeting/package.json'))).toBe(true);
-
-      // Verify package.json is valid
-      const pkg = JSON.parse(readFileSync(join(projectDir, 'package.json'), 'utf-8'));
-      expect(pkg.name).toBe('test-project');
-      expect(pkg.type).toBe('module');
-      expect(pkg.scripts?.eval).toContain('braintrust eval');
-    });
-
-    it('can load fixtures from generated project', () => {
-      const projectDir = join(TEST_DIR, 'test-project');
-      const evalsDir = join(projectDir, 'evals');
-
-      const { fixtures, errors } = loadAllFixtures(evalsDir);
-
-      expect(fixtures).toHaveLength(1);
-      expect(errors).toHaveLength(0);
-      expect(fixtures[0].name).toBe('add-greeting');
-    });
-
-    it('can load Claude Code experiment config from generated project', async () => {
-      const projectDir = join(TEST_DIR, 'test-project');
-      const configPath = join(projectDir, 'experiments/cc.ts');
-
-      const config = await loadConfig(configPath);
-
-      expect(config.agent).toBe('claude-code');
-      expect(config.model).toBe('opus');
-    });
   });
 
   describe.skipIf(!hasAnthropicCredentials)('Claude Code sandbox execution', () => {

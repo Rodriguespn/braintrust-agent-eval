@@ -104,7 +104,7 @@ export function createClaudeCodeAgent(): Agent {
     try {
       // Collect files from fixture
       const allFiles = await collectLocalFiles(fixturePath);
-      const { workspaceFiles, testFiles } = splitTestFiles(allFiles);
+      const { workspaceFiles } = splitTestFiles(allFiles);
 
       // Check for abort before expensive operations
       if (aborted) {
@@ -117,6 +117,10 @@ export function createClaudeCodeAgent(): Agent {
         };
       }
 
+      // Phase: sandbox:setup
+      let phaseStart = Date.now();
+      options.onPhase?.('sandbox:setup', 'start');
+
       // Create sandbox
       sandbox = await createSandbox({
         timeout: options.timeout,
@@ -126,6 +130,7 @@ export function createClaudeCodeAgent(): Agent {
 
       // Check for abort after sandbox creation (abort may have fired during create)
       if (aborted) {
+        options.onPhase?.('sandbox:setup', 'end', Date.now() - phaseStart);
         hasReturned = true;
         return {
           success: false,
@@ -145,6 +150,12 @@ export function createClaudeCodeAgent(): Agent {
       if (options.setup) {
         await options.setup(sandbox);
       }
+
+      options.onPhase?.('sandbox:setup', 'end', Date.now() - phaseStart);
+
+      // Phase: sandbox:npm-install
+      phaseStart = Date.now();
+      options.onPhase?.('sandbox:npm-install', 'start');
 
       // Install dependencies
       let installResult = await sandbox.runCommand('npm', ['install']);
@@ -166,8 +177,14 @@ export function createClaudeCodeAgent(): Agent {
         throw new Error(`Claude Code install failed: ${cliInstall.stderr}`);
       }
 
+      options.onPhase?.('sandbox:npm-install', 'end', Date.now() - phaseStart);
+
       // Verify no test files in sandbox
       await verifyNoTestFiles(sandbox);
+
+      // Phase: agent:run
+      phaseStart = Date.now();
+      options.onPhase?.('agent:run', 'start');
 
       // Run Claude Code with direct Anthropic API
       const claudeResult = await sandbox.runCommand(
@@ -184,6 +201,7 @@ export function createClaudeCodeAgent(): Agent {
 
       if (claudeResult.exitCode !== 0) {
         await captureTranscriptBestEffort();
+        options.onPhase?.('agent:run', 'end', Date.now() - phaseStart);
         // Extract meaningful error from output (last few lines usually contain the error)
         const errorLines = agentOutput.trim().split('\n').slice(-5).join('\n');
         hasReturned = true;
@@ -200,8 +218,21 @@ export function createClaudeCodeAgent(): Agent {
       // Capture transcript before running scripts
       await captureTranscriptBestEffort();
 
+      options.onPhase?.('agent:run', 'end', Date.now() - phaseStart);
+
+      // Phase: scripts (only if scripts are configured)
+      const scripts = options.scripts ?? [];
+      if (scripts.length > 0) {
+        phaseStart = Date.now();
+        options.onPhase?.('scripts', 'start');
+      }
+
       // Run configured npm scripts (build, lint, etc.)
-      const scriptsResult = await runScripts(sandbox, options.scripts ?? []);
+      const scriptsResult = await runScripts(sandbox, scripts);
+
+      if (scripts.length > 0) {
+        options.onPhase?.('scripts', 'end', Date.now() - phaseStart);
+      }
 
       // Capture generated files
       const { generatedFiles, deletedFiles } = await captureGeneratedFiles(sandbox);
