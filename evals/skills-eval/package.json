@@ -1,0 +1,24 @@
+{
+  "name": "skills-eval",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "eval": "npx braintrust eval src/skill.eval.ts",
+    "eval:dry": "npx braintrust eval --no-send-logs src/skill.eval.ts",
+    "eval:ci": "npx braintrust eval --no-send-logs --terminate-on-failure src/skill.eval.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@supabase/agent-evals": "workspace:*",
+    "autoevals": "^0.0.132",
+    "braintrust": "^3.2.0",
+    "common-tags": "^1.8.2",
+    "dotenv": "^16.0.0"
+  },
+  "devDependencies": {
+    "@types/common-tags": "^1.8.4",
+    "tsx": "^4.7.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  }
+}

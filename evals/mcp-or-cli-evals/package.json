@@ -1,0 +1,20 @@
+{
+  "name": "mcp-or-cli-evals",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "eval": "npx braintrust eval src/mcp-or-cli.eval.ts",
+    "eval:dry": "npx braintrust eval --no-send-logs src/mcp-or-cli.eval.ts",
+    "eval:baseline": "EVAL_BASELINE=true npx braintrust eval src/mcp-or-cli.eval.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@supabase/agent-evals": "workspace:*",
+    "braintrust": "^3.2.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.7.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  }
+}

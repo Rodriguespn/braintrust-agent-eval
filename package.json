@@ -1,0 +1,14 @@
+{
+  "private": true,
+  "packageManager": "pnpm@10.18.3",
+  "workspaces": ["packages/*", "evals/*"],
+  "scripts": {
+    "build": "pnpm --filter @supabase/agent-evals run build",
+    "build:agent-eval": "pnpm --filter @supabase/agent-evals run build",
+    "typecheck": "pnpm --filter @supabase/agent-evals run typecheck",
+    "test": "pnpm --filter @supabase/agent-evals run test",
+    "test:watch": "pnpm --filter @supabase/agent-evals run test:watch",
+    "test:integration": "pnpm --filter @supabase/agent-evals run test:integration",
+    "lint": "pnpm --filter @supabase/agent-evals run lint"
+  }
+}

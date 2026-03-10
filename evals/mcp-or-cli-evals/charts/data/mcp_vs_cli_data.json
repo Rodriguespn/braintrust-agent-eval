@@ -1,0 +1,254 @@
+[
+  {
+    "experiment_id": "30254952-d999-4bfc-809a-33b9557391fd",
+    "timestamp": "2026-03-06T16:23:10.294Z",
+    "model": "claude-sonnet-4-6",
+    "baseline": true,
+    "mcp_tool_count": null,
+    "mcp_count": 14,
+    "cli_count": 3,
+    "total": 17,
+    "score": 0.8235,
+    "breakdown": [
+      {
+        "method": "mcp",
+        "operation": "execute sql"
+      },
+      {
+        "method": "mcp",
+        "operation": "execute sql"
+      },
+      {
+        "method": "mcp",
+        "operation": "list extensions"
+      },
+      {
+        "method": "mcp",
+        "operation": "list tables"
+      },
+      {
+        "method": "mcp",
+        "operation": "execute sql"
+      },
+      {
+        "method": "cli",
+        "operation": "get project url"
+      },
+      {
+        "method": "mcp",
+        "operation": "apply migration"
+      },
+      {
+        "method": "mcp",
+        "operation": "execute sql"
+      },
+      {
+        "method": "mcp",
+        "operation": "get advisors"
+      },
+      {
+        "method": "mcp",
+        "operation": "get logs"
+      },
+      {
+        "method": "mcp",
+        "operation": "search docs"
+      },
+      {
+        "method": "mcp",
+        "operation": "get advisors"
+      },
+      {
+        "method": "mcp",
+        "operation": "get logs"
+      },
+      {
+        "method": "mcp",
+        "operation": "list migrations"
+      },
+      {
+        "method": "mcp",
+        "operation": "execute sql"
+      },
+      {
+        "method": "cli",
+        "operation": "generate typescript types"
+      },
+      {
+        "method": "cli",
+        "operation": "generate typescript types"
+      }
+    ]
+  },
+  {
+    "experiment_id": "a784cc47-cc5f-4c83-977c-7d09c1178d8c",
+    "timestamp": "2026-03-06T16:27:45.089Z",
+    "model": "claude-sonnet-4-6",
+    "baseline": false,
+    "mcp_tool_count": 20,
+    "mcp_count": 9,
+    "cli_count": 1,
+    "total": 10,
+    "score": 0.9,
+    "breakdown": [
+      {
+        "method": "cli",
+        "operation": "get project url"
+      },
+      {
+        "method": "mcp",
+        "operation": "list tables"
+      },
+      {
+        "method": "mcp",
+        "operation": "execute sql"
+      },
+      {
+        "method": "mcp",
+        "operation": "execute sql"
+      },
+      {
+        "method": "mcp",
+        "operation": "execute sql"
+      },
+      {
+        "method": "mcp",
+        "operation": "get advisors"
+      },
+      {
+        "method": "mcp",
+        "operation": "get advisors"
+      },
+      {
+        "method": "mcp",
+        "operation": "get logs"
+      },
+      {
+        "method": "mcp",
+        "operation": "list migrations"
+      },
+      {
+        "method": "mcp",
+        "operation": "list migrations"
+      }
+    ]
+  },
+  {
+    "experiment_id": "5cccd78c-1f57-4ab6-ae7e-cbd5fb05ccfa",
+    "timestamp": "2026-03-06T16:52:28.720Z",
+    "model": "claude-sonnet-4-6",
+    "baseline": false,
+    "mcp_tool_count": 8,
+    "mcp_count": 11,
+    "cli_count": 1,
+    "total": 12,
+    "score": 0.9167,
+    "breakdown": [
+      {
+        "method": "cli",
+        "operation": "get project url"
+      },
+      {
+        "method": "mcp",
+        "operation": "list extensions"
+      },
+      {
+        "method": "mcp",
+        "operation": "list tables"
+      },
+      {
+        "method": "mcp",
+        "operation": "execute sql"
+      },
+      {
+        "method": "mcp",
+        "operation": "execute sql"
+      },
+      {
+        "method": "mcp",
+        "operation": "get advisors"
+      },
+      {
+        "method": "mcp",
+        "operation": "get advisors"
+      },
+      {
+        "method": "mcp",
+        "operation": "get logs"
+      },
+      {
+        "method": "mcp",
+        "operation": "get logs"
+      },
+      {
+        "method": "mcp",
+        "operation": "search docs"
+      },
+      {
+        "method": "mcp",
+        "operation": "list migrations"
+      },
+      {
+        "method": "mcp",
+        "operation": "list migrations"
+      }
+    ]
+  },
+  {
+    "experiment_id": "90f4c4b4-d9f6-4f9e-a602-628dea25c2db",
+    "timestamp": "2026-03-06T17:20:18.497Z",
+    "model": "claude-sonnet-4-6",
+    "baseline": false,
+    "mcp_tool_count": 7,
+    "mcp_count": 8,
+    "cli_count": 3,
+    "total": 11,
+    "score": 0.7273,
+    "breakdown": [
+      {
+        "method": "mcp",
+        "operation": "list tables"
+      },
+      {
+        "method": "cli",
+        "operation": "get project url"
+      },
+      {
+        "method": "mcp",
+        "operation": "apply migration"
+      },
+      {
+        "method": "mcp",
+        "operation": "execute sql"
+      },
+      {
+        "method": "mcp",
+        "operation": "execute sql"
+      },
+      {
+        "method": "mcp",
+        "operation": "get advisors"
+      },
+      {
+        "method": "mcp",
+        "operation": "get advisors"
+      },
+      {
+        "method": "mcp",
+        "operation": "get logs"
+      },
+      {
+        "method": "mcp",
+        "operation": "list migrations"
+      },
+      {
+        "method": "cli",
+        "operation": "generate typescript types"
+      },
+      {
+        "method": "cli",
+        "operation": "generate typescript types"
+      }
+    ]
+  }
+]

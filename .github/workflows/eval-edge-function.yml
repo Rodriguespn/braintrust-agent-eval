@@ -1,0 +1,48 @@
+name: Eval - New Edge Function
+
+on:
+  workflow_dispatch:
+
+jobs:
+  eval:
+    name: Run new-edge-function eval
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.18.3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build @supabase/agent-evals
+        run: pnpm --filter @supabase/agent-evals run build
+
+      - name: Run new-edge-function eval
+        working-directory: evals/skills-eval
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          BRAINTRUST_API_KEY: ${{ secrets.BRAINTRUST_API_KEY }}
+          EVAL_SCENARIO: new-edge-function
+          EVAL_BASELINE: "true"
+          MODEL: claude-sonnet-4-6
+        run: pnpm eval:ci
+
+      - name: Upload eval results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-results
+          path: evals/skills-eval/results/
